@@ -28,5 +28,6 @@ public class FeedbackEntity {
     @JoinColumn(name = "user_id")
     private UserEntity recipient;
     @CreatedDate
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 }
