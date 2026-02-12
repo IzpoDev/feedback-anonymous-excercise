@@ -18,10 +18,10 @@ import java.util.Map;
 @Service
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
+    @Value("${spring.jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${spring.jwt.expiration}")
     private Long expirationTime;
 
 
