@@ -37,7 +37,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/users/login",
+                                "/auth/login",
                                 "/users/",
                                 "/feedbacks/**"
                         ).permitAll()

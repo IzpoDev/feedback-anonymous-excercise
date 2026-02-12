@@ -25,8 +25,7 @@ public class UserMapper {
         UserResponseDto userResponseDto = new UserResponseDto();
         userResponseDto.setId(userEntity.getId());
         userResponseDto.setEmail(userEntity.getEmail());
-        userResponseDto.setUsername(userEntity.getPassword());
-        userResponseDto.setPassword(userEntity.getPassword());
+        userResponseDto.setUsername(userEntity.getUsername());
         userResponseDto.setRole(userEntity.getRole().getName());
         return userResponseDto;
     }
