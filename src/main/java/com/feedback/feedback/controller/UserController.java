@@ -47,4 +47,8 @@ public class UserController {
         userService.deleteUser(id);
         return new ResponseEntity<>("Ususario con id " + id + " Eliminado ", HttpStatus.RESET_CONTENT);
     }
+    @PostMapping("/admin")
+    public ResponseEntity<UserResponseDto> registerAdmin(@RequestBody @Valid UserRequestDto userRequestDto){
+        return new ResponseEntity<>(userService.registerAdmin(userRequestDto), HttpStatus.CREATED);
+    }
 }

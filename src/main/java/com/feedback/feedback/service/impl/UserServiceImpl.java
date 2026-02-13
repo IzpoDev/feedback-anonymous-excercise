@@ -1,5 +1,6 @@
 package com.feedback.feedback.service.impl;
 
+import com.feedback.feedback.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import com.feedback.feedback.mapper.UserMapper;
 import com.feedback.feedback.model.dto.UserRequestDto;
@@ -78,5 +79,24 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userEntity);
         }
         else throw new RuntimeException("El usuario con id " + id + " no se encuentra activo o no existe");
+    }
+
+    @Override
+    public UserResponseDto registerAdmin(UserRequestDto userRequestDto) {
+
+        UserEntity userEntity = UserMapper.toEntity(userRequestDto);
+        if(!userRepository.existUserByUsername(userEntity.getUsername())){
+            userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+            userEntity.setActive(Boolean.TRUE);
+            userEntity.setRole(roleRepository.findByName("ADMIN").orElseThrow(
+                    ()-> new EntityNotFoundException("El rol ADMIN no existe")));
+            userRepository.save(userEntity);
+            return UserMapper.toDto(userEntity);
+        } else {
+            userEntity = userRepository.findByUsername(userEntity.getUsername()).orElseThrow(() -> new EntityNotFoundException("Username no se encuentra en la base de datos"));
+            userEntity.setActive(Boolean.TRUE);
+            userEntity.setRole(roleRepository.findByName("ADMIN").orElseThrow());
+            return UserMapper.toDto(userRepository.save(userEntity));
+        }
     }
 }
