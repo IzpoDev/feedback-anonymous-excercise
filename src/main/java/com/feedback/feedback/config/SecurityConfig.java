@@ -38,7 +38,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/auth/login",
-                                "/users/",
+                                "/users/**",
                                 "/feedbacks/**"
                         ).permitAll()
                         // B: Los endpoints de admin

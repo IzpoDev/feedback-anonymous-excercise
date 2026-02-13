@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class FeedbackResponseDto {
-
     private Long id;
     private String content;
     private String recipient;
