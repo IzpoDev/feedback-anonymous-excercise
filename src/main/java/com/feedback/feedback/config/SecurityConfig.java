@@ -41,7 +41,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/roles/**"
-                        ).hasAnyRole("ADMIN", "OWNER")
+                        ).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,
                                 "/feedbacks/**")
                         .hasAuthority("UPDATE_FEEDBACK")
