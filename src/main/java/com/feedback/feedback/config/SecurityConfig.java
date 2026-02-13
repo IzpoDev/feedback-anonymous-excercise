@@ -29,36 +29,32 @@ public class SecurityConfig {
         //2. Configurar las reglas de autorizacion de las peticiones http
         http.authorizeHttpRequests(
                 requests -> requests
-                        // A: Los endpoints publicos registrar owners para recibir feedbacks y logear y encontrar su feedbacks,
-                        // ademas para registrar el feedback anonimo
-
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/auth/login",
-                                "/users/**",
+                                "/users/",
+                                "/users/admin/**",
                                 "/feedbacks/**"
                         ).permitAll()
-                        // B: Los endpoints de admin
                         .requestMatchers(
                                 "/roles/**"
-                        ).hasAnyRole("ADMIN", "OWNER")
-
-                        // Admin solo podra actualizar feedbacks y eliminarlos
+                        ).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,
                                 "/feedbacks/**")
-                        .hasAnyRole("ADMIN")
+                        .hasAuthority("UPDATE_FEEDBACK")
                         .requestMatchers(HttpMethod.DELETE,
                                 "/feedbacks/**")
-                        .hasAnyRole("ADMIN")
-                        //El ownner como el admin podra ver todos los feedbacks que le correspondan pero el admin de manera global
+                        .hasAuthority("DELETE_FEEDBACK")
                         .requestMatchers(HttpMethod.GET, "/feedbacks/**")
-                        .hasAnyRole("ADMIN")
+                        .hasAuthority("READ_FEEDBACK")
                         .requestMatchers(HttpMethod.GET, "/feedbacks/owner/**")
                         .hasAnyRole("ADMIN", "OWNER")
-
+                        .requestMatchers(
+                                "/privileges/**"
+                        ).hasRole("ADMIN")
                         .anyRequest().authenticated()
         );
         // 3. Deshabilitar el formulario de login por defecto de Spring.

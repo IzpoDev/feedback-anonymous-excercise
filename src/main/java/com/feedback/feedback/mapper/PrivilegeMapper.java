@@ -1,0 +1,29 @@
+package com.feedback.feedback.mapper;
+
+import com.feedback.feedback.model.dto.PrivilegeRequestDto;
+import com.feedback.feedback.model.dto.PrivilegeResponseDto;
+import com.feedback.feedback.model.entity.PrivilegeEntity;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class PrivilegeMapper {
+    public static PrivilegeEntity toEntity(PrivilegeRequestDto privilegeRequestDto){
+        PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+        privilegeEntity.setName(privilegeRequestDto.getName());
+        return privilegeEntity;
+    }
+    public static PrivilegeResponseDto toDto(PrivilegeEntity privilegeEntity){
+        PrivilegeResponseDto privilegeResponseDto = new PrivilegeResponseDto();
+        privilegeResponseDto.setName(privilegeEntity.getName());
+        privilegeResponseDto.setDescription(privilegeEntity.getDescription());
+        privilegeResponseDto.setId(privilegeEntity.getId());
+        return privilegeResponseDto;
+    }
+    public static List<PrivilegeResponseDto> toListDto(List<PrivilegeEntity> privilegeEntities){
+        return privilegeEntities.stream()
+                .map(PrivilegeMapper::toDto)
+                .toList();
+
+    }
+}

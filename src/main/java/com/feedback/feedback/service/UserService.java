@@ -15,4 +15,6 @@ public interface UserService {
     List<UserResponseDto> getAllUsers();
     List<UserResponseDto> getAllActiveUsers();
     void deleteUser(Long id);
+
+    UserResponseDto registerAdmin(UserRequestDto userRequestDto);
 }

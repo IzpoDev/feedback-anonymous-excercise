@@ -1,5 +1,9 @@
 package com.feedback.feedback.service.impl;
 
+import com.feedback.feedback.model.entity.PrivilegeEntity;
+import com.feedback.feedback.model.entity.RolePrivilegeEntity;
+import com.feedback.feedback.repository.PrivilegeRepository;
+import com.feedback.feedback.repository.RolePrivilegeRepository;
 import lombok.RequiredArgsConstructor;
 import com.feedback.feedback.mapper.RoleMapper;
 import com.feedback.feedback.model.dto.RoleRequestDto;
@@ -14,6 +18,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
+
+    private final PrivilegeRepository privilegeRepository;
+    private final RolePrivilegeRepository rolePrivilegeRepository;
     private final RoleRepository roleRepository;
     @Override
     public RoleResponseDto createRole(RoleRequestDto roleRequestDto) {
@@ -56,6 +63,30 @@ public class RoleServiceImpl implements RoleService {
             roleRepository.save(roleEntity);
         }
         throw new RuntimeException("El rol con id " + id + " no existe");
+
+    }
+
+    @Override
+    public void assignPrivilegeToRole(Long roleId, Long privilegeId) {
+
+        RoleEntity role = roleRepository.findById(roleId).orElseThrow();
+        PrivilegeEntity privilege = privilegeRepository.findById(privilegeId).orElseThrow();
+        if (rolePrivilegeRepository.findByRoleAndPrivilegeAndActive(role, privilege, true).isEmpty()) {
+            RolePrivilegeEntity rp = new RolePrivilegeEntity();
+            rp.setRole(role);
+            rp.setPrivilege(privilege);
+            rp.setActive(true);
+            rolePrivilegeRepository.save(rp);
+        }
+    }
+
+    @Override
+    public void removePrivilegeFromRole(Long roleId, Long privilegeId) {
+        RoleEntity role = roleRepository.findById(roleId).orElseThrow();
+        PrivilegeEntity privilege = privilegeRepository.findById(privilegeId).orElseThrow();
+        RolePrivilegeEntity rp = rolePrivilegeRepository.findByRoleAndPrivilegeAndActive(role, privilege, true).orElseThrow();
+        rp.setActive(false);
+        rolePrivilegeRepository.save(rp);
 
     }
 }
