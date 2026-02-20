@@ -30,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(),loginRequestDto.getPassword())
+                new UsernamePasswordAuthenticationToken(loginRequestDto.username(),loginRequestDto.password())
         );
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -47,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
         response.setToken(token);
         response.setUser(UserMapper.toDto(
                 userRepository.findUsernameAndActive(
-                        loginRequestDto.getUsername(),Boolean.TRUE).orElseThrow(
+                        loginRequestDto.username(),Boolean.TRUE).orElseThrow(
                                 ()-> new EntityNotFoundException("Usuario no encontrado")
                 )
             )
