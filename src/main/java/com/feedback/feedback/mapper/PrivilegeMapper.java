@@ -5,9 +5,13 @@ import com.feedback.feedback.model.dto.PrivilegeResponseDto;
 import com.feedback.feedback.model.entity.PrivilegeEntity;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 public class PrivilegeMapper {
+
+    private PrivilegeMapper(){
+        throw new IllegalStateException("Clase de Utilidad(Utility Class)");
+    }
     public static PrivilegeEntity toEntity(PrivilegeRequestDto privilegeRequestDto){
         PrivilegeEntity privilegeEntity = new PrivilegeEntity();
         privilegeEntity.setName(privilegeRequestDto.getName());

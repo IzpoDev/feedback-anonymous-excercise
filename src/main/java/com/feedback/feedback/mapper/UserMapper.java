@@ -1,19 +1,16 @@
 package com.feedback.feedback.mapper;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
 import com.feedback.feedback.model.dto.UserRequestDto;
 import com.feedback.feedback.model.dto.UserResponseDto;
 import com.feedback.feedback.model.entity.UserEntity;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 
-@Component
-public class UserMapper {
 
+public class UserMapper {
+    private UserMapper(){
+        throw new IllegalStateException("Clase de Utilidad(Utility Class)");
+    }
     public static UserEntity toEntity( UserRequestDto userRequestDto){
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail( userRequestDto.getEmail() );
@@ -26,7 +23,6 @@ public class UserMapper {
         userResponseDto.setId(userEntity.getId());
         userResponseDto.setEmail(userEntity.getEmail());
         userResponseDto.setUsername(userEntity.getUsername());
-        userResponseDto.setPassword(userEntity.getPassword());
         userResponseDto.setRole(userEntity.getRole().getName());
         return userResponseDto;
     }

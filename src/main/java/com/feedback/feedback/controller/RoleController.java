@@ -35,7 +35,7 @@ public class RoleController {
         @DeleteMapping("/{id}")
         public ResponseEntity<String> deleteRoleById(@PathVariable Long id){
             roleService.deleteRole(id);
-            return new ResponseEntity<>("Rol con id " + id + " Eliminado ", HttpStatus.RESET_CONTENT);
+            return new ResponseEntity<>("Rol con id " + id + " Eliminado ", HttpStatus.OK);
         }
         @PutMapping("/{id}")
         public ResponseEntity<RoleResponseDto> updateRole(@PathVariable Long id,@RequestBody @Valid RoleRequestDto roleRequestDto){

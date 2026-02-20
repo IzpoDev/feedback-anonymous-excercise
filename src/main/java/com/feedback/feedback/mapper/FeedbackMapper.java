@@ -3,13 +3,13 @@ package com.feedback.feedback.mapper;
 import com.feedback.feedback.model.dto.FeedbackRequestDto;
 import com.feedback.feedback.model.dto.FeedbackResponseDto;
 import com.feedback.feedback.model.entity.FeedbackEntity;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 public class FeedbackMapper {
-
+    private FeedbackMapper(){
+        throw new IllegalStateException("Clase de Utilidad(Utility Class)");
+    }
     public static FeedbackEntity toEntity(FeedbackRequestDto feedbackRequestDto){
         FeedbackEntity feedbackEntity = new FeedbackEntity();
         feedbackEntity.setContent(feedbackRequestDto.getContent());

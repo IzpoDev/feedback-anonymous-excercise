@@ -45,7 +45,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUserById(@PathVariable Long id){
         userService.deleteUser(id);
-        return new ResponseEntity<>("Ususario con id " + id + " Eliminado ", HttpStatus.RESET_CONTENT);
+        return new ResponseEntity<>("Ususario con id " + id + " Eliminado ", HttpStatus.OK);
     }
     @PostMapping("/admin")
     public ResponseEntity<UserResponseDto> registerAdmin(@RequestBody @Valid UserRequestDto userRequestDto){
