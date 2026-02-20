@@ -1,5 +1,6 @@
 package com.feedback.feedback.service.impl;
 
+import com.feedback.feedback.exception.EntityNotFoundException;
 import com.feedback.feedback.model.entity.PrivilegeEntity;
 import com.feedback.feedback.model.entity.RolePrivilegeEntity;
 import com.feedback.feedback.repository.PrivilegeRepository;
@@ -68,10 +69,17 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public void assignPrivilegeToRole(Long roleId, Long privilegeId) {
-
-        RoleEntity role = roleRepository.findById(roleId).orElseThrow();
-        PrivilegeEntity privilege = privilegeRepository.findById(privilegeId).orElseThrow();
-        if (rolePrivilegeRepository.findByRoleAndPrivilegeAndActive(role, privilege, true).isEmpty()) {
+        if(rolePrivilegeRepository.findByRoleIdAndPrivilegesId(roleId,privilegeId).isPresent()){
+            RolePrivilegeEntity rp = rolePrivilegeRepository.findByRoleIdAndPrivilegesId(roleId,privilegeId).get();
+            rp.setActive(true);
+            rolePrivilegeRepository.save(rp);
+        } else {
+            RoleEntity role = roleRepository.findById(roleId).orElseThrow(
+                    ()-> new EntityNotFoundException("El rol con id " + roleId + " no existe")
+            );
+            PrivilegeEntity privilege = privilegeRepository.findById(privilegeId).orElseThrow(
+                    ()-> new EntityNotFoundException("El privilegio con id " + privilegeId + " no existe")
+            );
             RolePrivilegeEntity rp = new RolePrivilegeEntity();
             rp.setRole(role);
             rp.setPrivilege(privilege);

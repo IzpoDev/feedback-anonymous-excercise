@@ -51,7 +51,7 @@ public class DataSeeder implements CommandLineRunner{
     private void assignPrivilegeToRole(Long roleId, Long privilegeId) {
         RoleEntity role = roleRepository.findById(roleId).orElseThrow();
         PrivilegeEntity privilege = privilegeRepository.findById(privilegeId).orElseThrow();
-        if (rolePrivilegeRepository.findByRoleAndPrivilegeAndActive(role, privilege, true).isEmpty()) {
+        if (rolePrivilegeRepository.findByRoleIdAndPrivilegesId(roleId, privilegeId).isEmpty()) {
             RolePrivilegeEntity rp = new RolePrivilegeEntity();
             rp.setRole(role);
             rp.setPrivilege(privilege);
