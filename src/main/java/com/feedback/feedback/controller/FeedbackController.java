@@ -26,6 +26,10 @@ public class FeedbackController {
     public ResponseEntity<List<FeedbackResponseDto>> getAllFeedbacks(@PathVariable Long recipientId){
            return new ResponseEntity<>(feedbackService.getAllFeedbacksByRecipientId(recipientId), HttpStatus.OK);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<FeedbackResponseDto> getFeedbackById(@PathVariable Long id){
+        return new ResponseEntity<>(feedbackService.getFeedbackById(id), HttpStatus.OK);
+    }
     @PutMapping("/{id}")
     public ResponseEntity<FeedbackResponseDto> updateFeedback(@PathVariable Long id,@RequestBody @Valid FeedbackRequestDto feedbackRequestDto){
         return new ResponseEntity<>(feedbackService.updateFeedback(id, feedbackRequestDto), HttpStatus.OK);
