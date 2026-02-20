@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/privileges")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class PrivilegeController {
 
     private final PrivilegeService privilegeService;
@@ -43,15 +41,15 @@ public class PrivilegeController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePrivilegeById(@PathVariable Long id){
         privilegeService.deletePrivilege(id);
-        return new ResponseEntity<>("Privilegio con id " + id + " Eliminado ", HttpStatus.RESET_CONTENT);
+        return new ResponseEntity<>("Privilegio con id " + id + " Eliminado ", HttpStatus.OK);
     }
-    @PostMapping("/assign")
-    public ResponseEntity<String> assignPrivilegeFromRole(@RequestParam Long roleId,@RequestParam Long privilegeId){
+    @PostMapping("/role/{role_id}/privilege/{privilege_id}")
+    public ResponseEntity<String> assignPrivilegeFromRole(@PathVariable("role_id") Long roleId,@PathVariable("privilege_id") Long privilegeId){
         roleService.assignPrivilegeToRole(roleId, privilegeId);
         return new ResponseEntity<>("Privilegio con id " + privilegeId + " asignado al rol con id " + roleId, HttpStatus.OK);
     }
-    @DeleteMapping("/assign")
-    public ResponseEntity<String> removePrivilegeFromRole(@RequestParam Long roleId,@RequestParam Long privilegeId){
+    @DeleteMapping("/role/{role_id}/privilege/{privilege_id}")
+    public ResponseEntity<String> removePrivilegeFromRole(@PathVariable("role_id") Long roleId, @PathVariable("privilege_id") Long privilegeId){
         roleService.removePrivilegeFromRole(roleId, privilegeId);
         return new ResponseEntity<>("Privilegio con id " + privilegeId + " removido del rol con id " + roleId, HttpStatus.OK);    }
 }

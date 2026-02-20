@@ -15,6 +15,12 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,10 +29,12 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        //1. Deshabilitar el filtro CSRF y añadir nustro filtro JWT al pricipio del encabezado
-        http.csrf(AbstractHttpConfigurer::disable)
+        // 1. Habilitar CORS nativo y deshabilitar CSRF
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        //2. Configurar las reglas de autorizacion de las peticiones http
+
+        // 2. Configurar las reglas de autorización
         http.authorizeHttpRequests(
                 requests -> requests
                         .requestMatchers(
@@ -35,26 +43,16 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/auth/login",
-                                "/users/",
-                                "/users/admin/**",
-                                "/feedbacks/**"
+                                "/users/", // Solo registro de usuarios normales
+                                "/feedbacks/**" // Feedback anónimo
                         ).permitAll()
-                        .requestMatchers(
-                                "/roles/**"
-                        ).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,
-                                "/feedbacks/**")
-                        .hasAuthority("UPDATE_FEEDBACK")
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/feedbacks/**")
-                        .hasAuthority("DELETE_FEEDBACK")
-                        .requestMatchers(HttpMethod.GET, "/feedbacks/**")
-                        .hasAuthority("READ_FEEDBACK")
-                        .requestMatchers(HttpMethod.GET, "/feedbacks/owner/**")
-                        .hasAnyRole("ADMIN", "OWNER")
-                        .requestMatchers(
-                                "/privileges/**"
-                        ).hasRole("ADMIN")
+                        //  SEGURIDAD CORREGIDA: Solo un ADMIN puede crear a otro ADMIN
+                        .requestMatchers(HttpMethod.POST, "/users/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/roles/**", "/privileges/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/feedbacks/**").hasAuthority("UPDATE_FEEDBACK")
+                        .requestMatchers(HttpMethod.DELETE, "/feedbacks/**").hasAuthority("DELETE_FEEDBACK")
+                        .requestMatchers(HttpMethod.GET, "/feedbacks/**").hasAuthority("READ_FEEDBACK")
+                        .requestMatchers(HttpMethod.GET, "/feedbacks/owner/**").hasAnyRole("ADMIN", "OWNER")
                         .anyRequest().authenticated()
         );
         // 3. Deshabilitar el formulario de login por defecto de Spring.
@@ -66,6 +64,17 @@ public class SecurityConfig {
         return http.build();
 
     }
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedOrigins(List.of("*")); // Permitir todas las fuentes
+        corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfiguration.setAllowedHeaders(List.of("authorization", "content-type", "x-requested-with"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();

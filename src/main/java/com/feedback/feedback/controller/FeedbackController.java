@@ -33,7 +33,7 @@ public class FeedbackController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteFeedback(@PathVariable Long id){
         feedbackService.deleteFeedback(id);
-        return new ResponseEntity<>("Feedback con id " + id + " Eliminado ", HttpStatus.RESET_CONTENT);
+        return new ResponseEntity<>("Feedback con id " + id + " Eliminado ", HttpStatus.OK);
     }
 
 }

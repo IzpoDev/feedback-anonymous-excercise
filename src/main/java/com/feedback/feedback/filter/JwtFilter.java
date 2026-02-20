@@ -88,7 +88,7 @@ public class JwtFilter extends OncePerRequestFilter {
         LocalDateTime now = LocalDateTime.now();
         response.setStatus(status.value());
         response.setContentType("application/json;charset=UTF-8");
-        response.setHeader("SalvaFoodAppAuthError", "JWT_ERROR");
+        response.setHeader("FeedbackAuthError", "JWT_ERROR");
 
         String jsonResponse = String.format(
                 "{\"timestamp\": \"%s\", \"status\": %d, \"error\": \"%s\", \"message\": \"%s\", \"path\": \"%s\"}",

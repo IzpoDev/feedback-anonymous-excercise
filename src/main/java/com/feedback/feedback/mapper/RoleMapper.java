@@ -1,19 +1,15 @@
 package com.feedback.feedback.mapper;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import com.feedback.feedback.model.dto.RoleRequestDto;
 import com.feedback.feedback.model.dto.RoleResponseDto;
 import com.feedback.feedback.model.entity.RoleEntity;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 
-@Component
 public class RoleMapper {
 
+    private RoleMapper(){
+        throw new IllegalStateException("Clase de Utilidad(Utility Class)");
+    }
     public static RoleEntity toEntity(RoleRequestDto roleRequestDto){
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setName(roleRequestDto.getName());

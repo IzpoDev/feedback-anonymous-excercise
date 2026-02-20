@@ -23,7 +23,6 @@ import java.util.List;
 public class CustomerUserDetailService implements UserDetailsService {
     private final UserRepository userRepository;
     private final RolePrivilegeRepository rolePrivilegeRepository;
-    private User userDetails;
 
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
