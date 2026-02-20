@@ -1,9 +1,7 @@
 package com.feedback.feedback.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -12,7 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "feedbacks")
 @EntityListeners(AuditingEntityListener.class)
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackEntity {

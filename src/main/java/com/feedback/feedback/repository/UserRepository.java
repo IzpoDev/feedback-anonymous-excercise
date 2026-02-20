@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query("select u from UserEntity u where u.active=true")
-    Optional<List<UserEntity>> getAllActiveUsers();
+    List<UserEntity> getAllActiveUsers();
     @Query("select u from UserEntity u where u.username=:username")
     Optional<UserEntity> getUserByUsername(@Param("username") String username);
     @Query("select u from UserEntity u where u.username=:username and u.active=false")

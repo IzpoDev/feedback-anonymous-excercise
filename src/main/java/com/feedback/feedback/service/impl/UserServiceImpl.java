@@ -29,7 +29,9 @@ public class UserServiceImpl implements UserService {
         if( !userRepository.existUserByUsername(userEntity.getUsername())){
             userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
             userEntity.setActive(Boolean.TRUE);
-            userEntity.setRole(roleRepository.getReferenceById(2L));
+            userEntity.setRole(roleRepository.findByName("OWNER").orElseThrow(
+                    () -> new EntityNotFoundException("El rol OWNER no existe")
+            ));
             userRepository.save(userEntity);
         } else {
             UserEntity userOld = userRepository.getOldUser(userEntity.getUsername()).orElseThrow(() -> new RuntimeException("Username ya se encuentra en uso"));
@@ -68,7 +70,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDto> getAllActiveUsers() {
-        return UserMapper.toListDto(userRepository.getAllActiveUsers().orElseThrow(()-> new RuntimeException("Los usuarios activos no fueron encontrados")));
+        return UserMapper.toListDto(userRepository.getAllActiveUsers());
     }
 
     @Override

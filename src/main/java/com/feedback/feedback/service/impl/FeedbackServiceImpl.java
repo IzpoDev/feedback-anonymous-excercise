@@ -35,8 +35,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public List<FeedbackResponseDto> getAllFeedbacksByRecipientId(Long recipientId) {
-        return FeedbackMapper.toListDto(feedbackRepository.findAllByRecipientId(recipientId).orElseThrow(()
-                -> new EntityNotFoundException("No se encontraron feedbacks para el usuario con id " + recipientId)));
+        return FeedbackMapper.toListDto(feedbackRepository.findAllByRecipientId(recipientId));
     }
 
     @Override

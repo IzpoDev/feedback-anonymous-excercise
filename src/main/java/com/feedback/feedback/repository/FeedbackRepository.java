@@ -13,6 +13,6 @@ import java.util.Optional;
 public interface FeedbackRepository extends JpaRepository<FeedbackEntity, Long> {
 
     @Query("select f from FeedbackEntity f where f.recipient.id=:id")
-    Optional<List<FeedbackEntity>> findAllByRecipientId(@Param("id") Long recipientId);
+    List<FeedbackEntity> findAllByRecipientId(@Param("id") Long recipientId);
 
 }
