@@ -19,7 +19,7 @@ public class PrivilegeServiceImpl implements PrivilegeService {
 
     @Override
     public PrivilegeResponseDto createPrivilege(PrivilegeRequestDto privilegeRequestDto) {
-        if(!privilegeRepository.existByName(privilegeRequestDto.getName())){
+        if(!privilegeRepository.existsByName(privilegeRequestDto.getName())){
             PrivilegeEntity pv = PrivilegeMapper.toEntity(privilegeRequestDto);
             pv.setActive(true);
             return PrivilegeMapper.toDto(privilegeRepository.save(pv));

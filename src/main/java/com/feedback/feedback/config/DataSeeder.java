@@ -37,7 +37,7 @@ public class DataSeeder implements CommandLineRunner{
 
     // Agrega estos métodos:
     private void createPrivilegeIfNotExist(String name, String description) {
-        if (!privilegeRepository.existByName(name)) {
+        if (!privilegeRepository.existsByName(name)) {
             PrivilegeEntity privilege = new PrivilegeEntity();
             privilege.setName(name);
             privilege.setDescription(description);

@@ -66,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public StartForgotPasswordResponseDto startForgotPassword(String email) {
-        if (userRepository.existUserByEmail(email)) {
+        if (userRepository.existsByEmail(email)) {
             String token = UUID.randomUUID().toString();
             UserEntity userTemp = userRepository.findByEmail(email).orElseThrow(
                     ()-> new EntityNotFoundException("Usuario no encontrado con el email " + email)
