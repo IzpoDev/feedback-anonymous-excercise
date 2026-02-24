@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final JavaMailSender javaMailSender;
     private final TokenPasswordResetRepository tokenPasswordResetRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
@@ -82,6 +84,7 @@ public class AuthServiceImpl implements AuthService {
             message.setSubject("Recuperacion de contraseña - Feedback App");
             message.setText("Ingresa aqui 'http://localhost:8081/auth/reset-password' el token " +
                     token + " & email: " + email);
+            javaMailSender.send(message);
             return new StartForgotPasswordResponseDto(email, "http://localhost:8081/auth/reset-password");
         } else {
             throw new EntityNotFoundException("Usuario no encontrado con el email " + email);
@@ -100,9 +103,10 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = userRepository.findByEmail(forgotPasswordRequestDto.getEmail()).orElseThrow(
                 () -> new EntityNotFoundException("Usuario no encontrado con el email " + forgotPasswordRequestDto.getEmail())
         );
-        user.setPassword(forgotPasswordRequestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(forgotPasswordRequestDto.getPassword()));
         userRepository.save(user);
         token.setUsed(Boolean.TRUE);
+        tokenPasswordResetRepository.save(token);
         return "El usuario " + user.getUsername() + " se ha reseteado su contraseña con exito";
     }
 
