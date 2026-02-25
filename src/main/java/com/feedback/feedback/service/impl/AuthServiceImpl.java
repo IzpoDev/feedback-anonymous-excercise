@@ -12,9 +12,12 @@ import com.feedback.feedback.repository.TokenPasswordResetRepository;
 import com.feedback.feedback.repository.UserRepository;
 import com.feedback.feedback.service.AuthService;
 import com.feedback.feedback.util.JwtUtil;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,14 +25,17 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements AuthService  {
 
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
@@ -73,18 +79,35 @@ public class AuthServiceImpl implements AuthService {
             UserEntity userTemp = userRepository.findByEmail(email).orElseThrow(
                     ()-> new EntityNotFoundException("Usuario no encontrado con el email " + email)
             );
+            //Token creado y almacenado en la base de datos con su fecha de expiracion
             TokenPasswordResetEntity tokenInfo = new TokenPasswordResetEntity();
             tokenInfo.setUsed(Boolean.FALSE);
             tokenInfo.setToken(token);
             tokenInfo.setUser(userTemp);
             tokenInfo.setExpireDate(LocalDateTime.now().plusHours(1));
             tokenPasswordResetRepository.save(tokenInfo);
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email);
-            message.setSubject("Recuperacion de contraseña - Feedback App");
-            message.setText("Ingresa aqui 'http://localhost:8081/auth/reset-password' el token " +
-                    token + " & email: " + email);
-            javaMailSender.send(message);
+
+            //Creacion del mensaje en formato html para enviar el correo
+            try {
+                ClassPathResource resource = new ClassPathResource("templates/index_mail.html");
+                String htmlContent = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+                String messageContent = String.format(htmlContent, email, token);
+
+                MimeMessage message = javaMailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                helper.setTo(email);
+                helper.setSubject("Recuperación de contraseña - Feedback App");
+                helper.setText(messageContent, true);
+                //Envio del correo
+                javaMailSender.send(message);
+            } catch (IOException e) {
+                throw new RuntimeException("Error al cargar la plantilla de correo", e);
+            }
+            catch (MessagingException ex){
+                throw new RuntimeException("Error al crear el mensaje de correo", ex);
+            }
+
             return new StartForgotPasswordResponseDto(email, "http://localhost:8081/auth/reset-password");
         } else {
             throw new EntityNotFoundException("Usuario no encontrado con el email " + email);
