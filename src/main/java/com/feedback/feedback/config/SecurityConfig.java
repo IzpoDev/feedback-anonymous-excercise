@@ -39,16 +39,19 @@ public class SecurityConfig {
                 requests -> requests
                         .requestMatchers(
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/auth/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/auth/login",
                                 "/users/", // Solo registro de usuarios normales
                                 "/feedbacks/**" // Feedback anónimo
                         ).permitAll()
                         //  SEGURIDAD CORREGIDA: Solo un ADMIN puede crear a otro ADMIN
                         .requestMatchers(HttpMethod.POST, "/users/admin/**").hasRole("ADMIN")
                         .requestMatchers("/roles/**", "/privileges/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/users/**").hasAuthority("UPDATE_USER")
+                        .requestMatchers(HttpMethod.DELETE, "/users/**").hasAuthority("DELETE_USER")
+                        .requestMatchers(HttpMethod.GET, "/users/**").hasAuthority("READ_USER")
                         .requestMatchers(HttpMethod.PUT, "/feedbacks/**").hasAuthority("UPDATE_FEEDBACK")
                         .requestMatchers(HttpMethod.DELETE, "/feedbacks/**").hasAuthority("DELETE_FEEDBACK")
                         .requestMatchers(HttpMethod.GET, "/feedbacks/**").hasAuthority("READ_FEEDBACK")

@@ -15,6 +15,7 @@ public class PrivilegeMapper {
     public static PrivilegeEntity toEntity(PrivilegeRequestDto privilegeRequestDto){
         PrivilegeEntity privilegeEntity = new PrivilegeEntity();
         privilegeEntity.setName(privilegeRequestDto.getName());
+        privilegeEntity.setDescription(privilegeRequestDto.getDescription());
         return privilegeEntity;
     }
     public static PrivilegeResponseDto toDto(PrivilegeEntity privilegeEntity){

@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface PrivilegeRepository extends JpaRepository<PrivilegeEntity, Long> {
-    Boolean existByName(String name);
+    Boolean existsByName(String name);
     Optional<PrivilegeEntity> findByName(String name);
 
 }

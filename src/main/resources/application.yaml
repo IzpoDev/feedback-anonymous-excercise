@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8082
 
 spring:
   application:
@@ -18,6 +18,18 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USER}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
   jwt:
     secret: jgflljkghiuldsfjkshiujfjsvniupbijpsdfvjsdfjv
     expiration: 3600000

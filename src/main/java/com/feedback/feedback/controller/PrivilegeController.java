@@ -45,11 +45,11 @@ public class PrivilegeController {
     }
     @PostMapping("/role/{role_id}/privilege/{privilege_id}")
     public ResponseEntity<String> assignPrivilegeFromRole(@PathVariable("role_id") Long roleId,@PathVariable("privilege_id") Long privilegeId){
-        roleService.assignPrivilegeToRole(roleId, privilegeId);
-        return new ResponseEntity<>("Privilegio con id " + privilegeId + " asignado al rol con id " + roleId, HttpStatus.OK);
+        String message = roleService.assignPrivilegeToRole(roleId, privilegeId);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
     @DeleteMapping("/role/{role_id}/privilege/{privilege_id}")
     public ResponseEntity<String> removePrivilegeFromRole(@PathVariable("role_id") Long roleId, @PathVariable("privilege_id") Long privilegeId){
-        roleService.removePrivilegeFromRole(roleId, privilegeId);
-        return new ResponseEntity<>("Privilegio con id " + privilegeId + " removido del rol con id " + roleId, HttpStatus.OK);    }
+        String message = roleService.removePrivilegeFromRole(roleId, privilegeId);
+        return new ResponseEntity<>(message, HttpStatus.OK);    }
 }

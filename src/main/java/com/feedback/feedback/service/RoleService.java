@@ -13,6 +13,6 @@ public interface RoleService {
     List<RoleResponseDto> getAllRoles();
     void deleteRole(Long id);
     // En RoleService.java, agrega estos métodos:
-    void assignPrivilegeToRole(Long roleId, Long privilegeId);
-    void removePrivilegeFromRole(Long roleId, Long privilegeId);
+    String assignPrivilegeToRole(Long roleId, Long privilegeId);
+    String removePrivilegeFromRole(Long roleId, Long privilegeId);
 }
