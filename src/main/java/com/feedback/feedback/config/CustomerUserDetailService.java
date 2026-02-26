@@ -2,7 +2,6 @@ package com.feedback.feedback.config;
 
 import com.feedback.feedback.model.entity.PrivilegeEntity;
 import com.feedback.feedback.repository.RolePrivilegeRepository;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import com.feedback.feedback.model.entity.UserEntity;
 import org.jspecify.annotations.NonNull;
@@ -26,7 +25,7 @@ public class CustomerUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
-        UserEntity user = userRepository.findUsernameAndActive(username, Boolean.TRUE)
+        UserEntity user = userRepository.findByUsernameAndActive(username, Boolean.TRUE)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         List<GrantedAuthority> authorities = new ArrayList<>();

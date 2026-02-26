@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
         LoginResponseDto response = new LoginResponseDto();
         response.setToken(token);
         response.setUser(UserMapper.toDto(
-                userRepository.findUsernameAndActive(
+                userRepository.findByUsernameAndActive(
                         loginRequestDto.username(),Boolean.TRUE).orElseThrow(
                                 ()-> new EntityNotFoundException("Usuario no encontrado")
                 )

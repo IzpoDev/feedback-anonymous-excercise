@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
 
         UserEntity userEntity = UserMapper.toEntity(userRequestDto);
-        if( !userRepository.existUserByUsername(userEntity.getUsername())){
+        if( !userRepository.existsByUsername(userEntity.getUsername())){
             userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
             userEntity.setActive(Boolean.TRUE);
             userEntity.setRole(roleRepository.findByName("OWNER").orElseThrow(
@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
             ));
             userRepository.save(userEntity);
         } else {
-            UserEntity userOld = userRepository.getOldUser(userEntity.getUsername()).orElseThrow(() -> new RuntimeException("Username ya se encuentra en uso"));
+            UserEntity userOld = userRepository.findByUsernameAndActiveFalse(userEntity.getUsername()).orElseThrow(() -> new RuntimeException("Username ya se encuentra en uso"));
             userEntity.setId(userOld.getId());
             userEntity.setActive(Boolean.TRUE);
             userEntity.setRole(userOld.getRole());
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
-        if(userRepository.existUserByIdActive(id)){
+        if(userRepository.existsByIdAndActiveTrue(id)){
             UserEntity user = userRepository.getReferenceById(id);
             user.setUsername(userRequestDto.getUsername());
             user.setEmail(userRequestDto.getEmail());
@@ -70,12 +70,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDto> getAllActiveUsers() {
-        return UserMapper.toListDto(userRepository.getAllActiveUsers());
+        return UserMapper.toListDto(userRepository.findByActiveTrue());
     }
 
     @Override
     public void deleteUser(Long id) {
-        if(!userRepository.existUserByIdActive(id)){
+        if(!userRepository.existsByIdAndActiveTrue(id)){
             UserEntity userEntity = userRepository.getReferenceById(id);
             userEntity.setActive(Boolean.FALSE);
             userRepository.save(userEntity);
@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto registerAdmin(UserRequestDto userRequestDto) {
 
         UserEntity userEntity = UserMapper.toEntity(userRequestDto);
-        if(!userRepository.existUserByUsername(userEntity.getUsername())){
+        if(!userRepository.existsByUsername(userEntity.getUsername())){
             userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
             userEntity.setActive(Boolean.TRUE);
             userEntity.setRole(roleRepository.findByName("ADMIN").orElseThrow(
