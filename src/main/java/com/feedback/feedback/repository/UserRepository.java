@@ -13,20 +13,16 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    @Query("select u from UserEntity u where u.active=true")
-    List<UserEntity> getAllActiveUsers();
-    @Query("select u from UserEntity u where u.username=:username")
-    Optional<UserEntity> getUserByUsername(@Param("username") String username);
     @Query("select u from UserEntity u where u.username=:username and u.active=false")
-    Optional<UserEntity> getOldUser(@Param("username") String username);
-    @Query("select case when count(u) >0 then true else false end from UserEntity u where u.username=:username")
-    Boolean existUserByUsername(@Param("username") String username);
+    Optional<UserEntity> findByUsernameAndActiveFalse(@Param("username") String username);
+    List<UserEntity> findByActiveTrue();
     @Query("select case when count(u) >0 then true else false end from UserEntity u where u.id=:id and u.active=true")
-    Boolean existUserByIdActive(@Param("id") Long id);
+    Boolean existsByIdAndActiveTrue(@Param("id") Long id);
     @Query("select u from UserEntity u where u.username=:username and u.active=:active" )
     Optional<UserEntity> findByUsernameAndActive(@Param("username") String username, @Param("active") Boolean active);
     @Query("select u from UserEntity u where u.username=:username")
     Optional<UserEntity> findByUsername(@Param("username") String username);
     Boolean existsByEmail(String email);
+    Boolean existsByUsername(String username);
     Optional<UserEntity> findByEmail(String email);
 }
