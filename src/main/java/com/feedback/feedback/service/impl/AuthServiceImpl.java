@@ -132,7 +132,7 @@ public class AuthServiceImpl implements AuthService  {
         userRepository.save(user);
         token.setUsed(Boolean.TRUE);
         tokenPasswordResetRepository.save(token);
-        return "El usuario " + user.getUsername() + " se ha reseteado su contraseña con exito";
+        return "El usuario " + user.getUsername() + " restablecio su contraseña con exito";
     }
 
 }
