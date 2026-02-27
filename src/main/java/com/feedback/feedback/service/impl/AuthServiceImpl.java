@@ -90,15 +90,17 @@ public class AuthServiceImpl implements AuthService  {
             //Creacion del mensaje en formato html para enviar el correo
             try {
                 ClassPathResource resource = new ClassPathResource("templates/index_mail.html");
-                String htmlContent = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
-                String messageContent = String.format(htmlContent, email, token);
+                String htmlTemplate= StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+                String htmlContent = htmlTemplate
+                        .replace("{{email}}", email)
+                        .replace("{{token}}", token);
 
                 MimeMessage message = javaMailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
                 helper.setTo(email);
                 helper.setSubject("Recuperación de contraseña - Feedback App");
-                helper.setText(messageContent, true);
+                helper.setText(htmlContent, true);
                 //Envio del correo
                 javaMailSender.send(message);
             } catch (IOException e) {
