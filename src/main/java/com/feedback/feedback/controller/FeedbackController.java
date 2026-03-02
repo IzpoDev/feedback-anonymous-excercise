@@ -2,6 +2,7 @@ package com.feedback.feedback.controller;
 
 import com.feedback.feedback.model.dto.FeedbackRequestDto;
 import com.feedback.feedback.model.dto.FeedbackResponseDto;
+import com.feedback.feedback.model.dto.UserResponseDto;
 import com.feedback.feedback.service.FeedbackService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,17 @@ public class FeedbackController {
     public ResponseEntity<List<FeedbackResponseDto>> getAllFeedbacks(@PathVariable Long recipientId){
            return new ResponseEntity<>(feedbackService.getAllFeedbacksByRecipientId(recipientId), HttpStatus.OK);
     }
-    @GetMapping("/{id}")
+    @GetMapping
+    public ResponseEntity<List<FeedbackResponseDto>> getAllFeedbacksByRecipientId(){
+        return new ResponseEntity<>(feedbackService.getAllFeedbacks(), HttpStatus.OK);
+    }
+    @GetMapping("/content/{id}")
     public ResponseEntity<FeedbackResponseDto> getFeedbackById(@PathVariable Long id){
         return new ResponseEntity<>(feedbackService.getFeedbackById(id), HttpStatus.OK);
+    }
+    @GetMapping("/owners")
+    public ResponseEntity<List<UserResponseDto>> getOwnersOfFeedback(){
+        return new ResponseEntity<>(feedbackService.getOwners(), HttpStatus.OK);
     }
     @PutMapping("/{id}")
     public ResponseEntity<FeedbackResponseDto> updateFeedback(@PathVariable Long id,@RequestBody @Valid FeedbackRequestDto feedbackRequestDto){

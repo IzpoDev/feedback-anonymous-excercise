@@ -43,10 +43,12 @@ public class SecurityConfig {
                                 "/auth/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST,
-                                "/users/", // Solo registro de usuarios normales
+                                "/users", // Solo registro de usuarios normales
                                 "/feedbacks/**" // Feedback anónimo
                         ).permitAll()
-                        //  SEGURIDAD CORREGIDA: Solo un ADMIN puede crear a otro ADMIN
+                        .requestMatchers(HttpMethod.GET,
+                                "/feedbacks/owners").permitAll()
+                        //  SEGURIDAD: Solo un ADMIN puede crear a otro ADMIN
                         .requestMatchers(HttpMethod.POST, "/users/admin/**").hasRole("ADMIN")
                         .requestMatchers("/roles/**", "/privileges/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/users/**").hasAuthority("UPDATE_USER")

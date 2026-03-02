@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,4 +26,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Boolean existsByEmail(String email);
     Boolean existsByUsername(String username);
     Optional<UserEntity> findByEmail(String email);
+    @Query("select u from UserEntity u where u.role.name='OWNER' and u.active=true")
+    List<UserEntity> findByRoleOwnerAndActiveTrue();
 }

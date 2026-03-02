@@ -2,8 +2,10 @@ package com.feedback.feedback.service.impl;
 
 import com.feedback.feedback.exception.EntityNotFoundException;
 import com.feedback.feedback.mapper.FeedbackMapper;
+import com.feedback.feedback.mapper.UserMapper;
 import com.feedback.feedback.model.dto.FeedbackRequestDto;
 import com.feedback.feedback.model.dto.FeedbackResponseDto;
+import com.feedback.feedback.model.dto.UserResponseDto;
 import com.feedback.feedback.model.entity.FeedbackEntity;
 import com.feedback.feedback.repository.FeedbackRepository;
 import com.feedback.feedback.repository.UserRepository;
@@ -34,6 +36,11 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
+    public List<FeedbackResponseDto> getAllFeedbacks() {
+        return FeedbackMapper.toListDto(feedbackRepository.findAll());
+    }
+
+    @Override
     public List<FeedbackResponseDto> getAllFeedbacksByRecipientId(Long recipientId) {
         return FeedbackMapper.toListDto(feedbackRepository.findAllByRecipientId(recipientId));
     }
@@ -44,6 +51,14 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedbackEntity.setContent(feedbackRequestDto.getContent());
         feedbackRepository.save(feedbackEntity);
         return FeedbackMapper.toDto(feedbackEntity);
+    }
+
+    @Override
+    public List<UserResponseDto> getOwners() {
+        return userRepository.findByRoleOwnerAndActiveTrue()
+                .stream()
+                .map(UserMapper::toDto)
+                .toList();
     }
 
     @Override
