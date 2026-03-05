@@ -1,15 +1,15 @@
 package com.feedback.feedback.config;
 
-import com.feedback.feedback.model.entity.PrivilegeEntity;
-import com.feedback.feedback.model.entity.RolePrivilegeEntity;
-import com.feedback.feedback.repository.PrivilegeRepository;
-import com.feedback.feedback.repository.RolePrivilegeRepository;
+import com.feedback.feedback.modules.privilege.entity.PrivilegeEntity;
+import com.feedback.feedback.modules.privilege.entity.RolePrivilegeEntity;
+import com.feedback.feedback.modules.privilege.repository.PrivilegeRepository;
+import com.feedback.feedback.modules.privilege.repository.RolePrivilegeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.feedback.feedback.model.entity.RoleEntity;
+import com.feedback.feedback.modules.role.model.entity.RoleEntity;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import com.feedback.feedback.repository.RoleRepository;
+import com.feedback.feedback.modules.role.repository.RoleRepository;
 
 @Component
 @RequiredArgsConstructor

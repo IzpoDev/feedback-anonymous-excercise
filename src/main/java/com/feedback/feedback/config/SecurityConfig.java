@@ -1,8 +1,7 @@
 package com.feedback.feedback.config;
 
-import com.feedback.feedback.exception.CustomAccessDeniedHandler;
-import com.feedback.feedback.exception.CustomBasicAuthenticationEntryPoint;
-import com.feedback.feedback.filter.JwtFilter;
+import com.feedback.feedback.common.exception.*;
+import com.feedback.feedback.common.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +26,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // 1. Habilitar CORS nativo y deshabilitar CSRF

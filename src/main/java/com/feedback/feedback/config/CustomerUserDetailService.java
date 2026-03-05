@@ -1,9 +1,9 @@
 package com.feedback.feedback.config;
 
-import com.feedback.feedback.model.entity.PrivilegeEntity;
-import com.feedback.feedback.repository.RolePrivilegeRepository;
+import com.feedback.feedback.modules.privilege.entity.PrivilegeEntity;
+import com.feedback.feedback.modules.privilege.repository.RolePrivilegeRepository;
 import lombok.RequiredArgsConstructor;
-import com.feedback.feedback.model.entity.UserEntity;
+import com.feedback.feedback.modules.user.model.entity.UserEntity;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import com.feedback.feedback.repository.UserRepository;
+import com.feedback.feedback.modules.user.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
