@@ -31,5 +31,5 @@ spring:
             enable: true
 
   jwt:
-    secret: jgflljkghiuldsfjkshiujfjsvniupbijpsdfvjsdfjv
-    expiration: 3600000
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION}
