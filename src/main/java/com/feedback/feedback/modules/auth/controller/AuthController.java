@@ -33,4 +33,8 @@ public class AuthController {
         String response = authService.resetPassword(forgotPasswordRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    @GetMapping("/health-check")
+    public ResponseEntity<?> getHealthCheck(){
+        return new ResponseEntity<>("OK", HttpStatus.OK);
+    }
 }

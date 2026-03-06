@@ -1,6 +1,8 @@
 package com.feedback.feedback.modules.user.service.impl;
 
 import com.feedback.feedback.common.exception.EntityNotFoundException;
+import com.feedback.feedback.common.util.JwtUtil;
+import com.feedback.feedback.modules.auth.controller.dto.LoginResponseDto;
 import lombok.RequiredArgsConstructor;
 import com.feedback.feedback.common.mapper.UserMapper;
 import com.feedback.feedback.modules.user.model.dto.UserRequestDto;
@@ -21,6 +23,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final JwtUtil jwtUtil;
 
     @Override
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
@@ -51,13 +54,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
+    public LoginResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
         if(userRepository.existsByIdAndActiveTrue(id)){
             UserEntity user = userRepository.getReferenceById(id);
             user.setUsername(userRequestDto.getUsername());
             user.setEmail(userRequestDto.getEmail());
-            userRepository.save(user);
-            return UserMapper.toDto(user);
+            user = userRepository.save(user);
+            LoginResponseDto response = new LoginResponseDto();
+            response.setUser(UserMapper.toDto(user));
+            response.setToken(jwtUtil.generateToken(user.getUsername(),user.getRole().getName()));
+            return response;
         }
         throw new RuntimeException("El usuario con id " + id + " no se encuentra activo o no existe");
     }

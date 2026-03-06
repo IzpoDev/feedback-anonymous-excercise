@@ -1,5 +1,6 @@
 package com.feedback.feedback.modules.user.controller;
 
+import com.feedback.feedback.modules.auth.controller.dto.LoginResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.feedback.feedback.modules.user.model.dto.UserRequestDto;
@@ -38,8 +39,8 @@ public class UserController {
         return new ResponseEntity<>(activeUsers, HttpStatus.OK);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id,@RequestBody @Valid UserRequestDto userRequestDto){
-        UserResponseDto user = userService.updateUser(id, userRequestDto);
+    public ResponseEntity<LoginResponseDto> updateUser(@PathVariable Long id, @RequestBody @Valid UserRequestDto userRequestDto){
+        LoginResponseDto user = userService.updateUser(id, userRequestDto);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
     @DeleteMapping("/{id}")
