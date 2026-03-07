@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/feedbacks/**").hasAuthority("DELETE_FEEDBACK")
                         .requestMatchers(HttpMethod.GET, "/feedbacks/**").hasAuthority("READ_FEEDBACK")
                         .requestMatchers(HttpMethod.GET, "/feedbacks/owner/**").hasAnyRole("ADMIN", "OWNER")
+                        .requestMatchers("/privileges/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
         );
         // 3. Deshabilitar el formulario de login por defecto de Spring.

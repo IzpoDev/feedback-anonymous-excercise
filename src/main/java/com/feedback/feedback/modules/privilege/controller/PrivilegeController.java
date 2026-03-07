@@ -2,6 +2,7 @@ package com.feedback.feedback.modules.privilege.controller;
 
 import com.feedback.feedback.modules.privilege.controller.dto.PrivilegeRequestDto;
 import com.feedback.feedback.modules.privilege.controller.dto.PrivilegeResponseDto;
+import com.feedback.feedback.modules.privilege.controller.dto.RolePrivilegeResponseDto;
 import com.feedback.feedback.modules.privilege.service.PrivilegeService;
 import com.feedback.feedback.modules.role.service.RoleService;
 import jakarta.validation.Valid;
@@ -34,6 +35,11 @@ public class PrivilegeController {
     public ResponseEntity<PrivilegeResponseDto> getPrivilegeById(@PathVariable Long id){
         return new ResponseEntity<>(privilegeService.getPrivilegeById(id), HttpStatus.OK);
     }
+    @GetMapping("/roles-privileges")
+    public ResponseEntity<List<RolePrivilegeResponseDto>> getRolesWithPrivilege(){
+        List<RolePrivilegeResponseDto> rolesWithPrivilege = privilegeService.getRolesWithPrivilege();
+        return new ResponseEntity<>(rolesWithPrivilege, HttpStatus.OK);
+    }
     @PutMapping("/{id}")
     public ResponseEntity<PrivilegeResponseDto> updatePrivilege(@PathVariable Long id,@RequestBody @Valid PrivilegeRequestDto privilegeRequestDto){
         return new ResponseEntity<>(privilegeService.updatePrivilege(id, privilegeRequestDto), HttpStatus.OK);
@@ -43,6 +49,7 @@ public class PrivilegeController {
         privilegeService.deletePrivilege(id);
         return new ResponseEntity<>("Privilegio con id " + id + " Eliminado ", HttpStatus.OK);
     }
+
     @PostMapping("/role/{role_id}/privilege/{privilege_id}")
     public ResponseEntity<String> assignPrivilegeFromRole(@PathVariable("role_id") Long roleId,@PathVariable("privilege_id") Long privilegeId){
         String message = roleService.assignPrivilegeToRole(roleId, privilegeId);
@@ -51,5 +58,6 @@ public class PrivilegeController {
     @DeleteMapping("/role/{role_id}/privilege/{privilege_id}")
     public ResponseEntity<String> removePrivilegeFromRole(@PathVariable("role_id") Long roleId, @PathVariable("privilege_id") Long privilegeId){
         String message = roleService.removePrivilegeFromRole(roleId, privilegeId);
-        return new ResponseEntity<>(message, HttpStatus.OK);    }
+        return new ResponseEntity<>(message, HttpStatus.OK);
+    }
 }

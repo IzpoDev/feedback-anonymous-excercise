@@ -2,10 +2,14 @@ package com.feedback.feedback.modules.privilege.service.impl;
 
 import com.feedback.feedback.common.exception.EntityNotFoundException;
 import com.feedback.feedback.common.mapper.PrivilegeMapper;
+import com.feedback.feedback.common.mapper.RolePrivilegeMapper;
 import com.feedback.feedback.modules.privilege.controller.dto.PrivilegeRequestDto;
 import com.feedback.feedback.modules.privilege.controller.dto.PrivilegeResponseDto;
+import com.feedback.feedback.modules.privilege.controller.dto.RolePrivilegeResponseDto;
 import com.feedback.feedback.modules.privilege.entity.PrivilegeEntity;
+import com.feedback.feedback.modules.privilege.entity.RolePrivilegeEntity;
 import com.feedback.feedback.modules.privilege.repository.PrivilegeRepository;
+import com.feedback.feedback.modules.privilege.repository.RolePrivilegeRepository;
 import com.feedback.feedback.modules.privilege.service.PrivilegeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrivilegeServiceImpl implements PrivilegeService {
     private final PrivilegeRepository privilegeRepository;
+    private final RolePrivilegeRepository rolePrivilegeRepository;
 
     @Override
     public PrivilegeResponseDto createPrivilege(PrivilegeRequestDto privilegeRequestDto) {
@@ -47,6 +52,12 @@ public class PrivilegeServiceImpl implements PrivilegeService {
     @Override
     public List<PrivilegeResponseDto> getAllPrivileges() {
         return PrivilegeMapper.toListDto(privilegeRepository.findAll());
+    }
+
+    @Override
+    public List<RolePrivilegeResponseDto> getRolesWithPrivilege() {
+        List<RolePrivilegeEntity> rolesWithPrivilege = rolePrivilegeRepository.findAll();
+        return RolePrivilegeMapper.toListDto(rolesWithPrivilege);
     }
 
     @Override
