@@ -1,6 +1,6 @@
 # 📬 Feedback App — API REST de Feedback Anónimo
 
-> Sistema backend para la gestión de feedback anónimo entre usuarios, construido con **Java 21** y **Spring Boot 4.0.2**. Incluye autenticación JWT, autorización basada en roles y privilegios, recuperación de contraseña por email y una arquitectura modular **Screaming Architecture**. Desplegado en **Render** con base de datos **PostgreSQL en Supabase**.
+> Sistema backend para la gestión de feedback anónimo entre usuarios, construido con **Java 21** y **Spring Boot 4.0.2**. Incluye autenticación JWT, autorización basada en roles y privilegios, recuperación de contraseña y una arquitectura modular **Screaming Architecture**. Desplegado de forma independiente en un servidor de **DigitalOcean** protegido por **Cloudflare Tunnels**, con base de datos **PostgreSQL en Supabase** y envío de correos transaccionales vía **Resend API**.
 
 ---
 
@@ -28,7 +28,6 @@
 | **Spring Security** | 7.x | Autenticación y autorización |
 | **Spring Data JPA** | — | Persistencia y acceso a datos con Hibernate |
 | **Spring Validation** | — | Validación de DTOs con Jakarta Validation |
-| **Spring Mail** | — | Envío de correos electrónicos vía SMTP |
 | **JJWT (io.jsonwebtoken)** | 0.12.6 | Generación y validación de tokens JWT |
 | **PostgreSQL** | — | Motor de base de datos relacional |
 | **Supabase** | — | Servicio cloud que alberga la base de datos PostgreSQL |
@@ -39,7 +38,9 @@
 | **Spring DevTools** | — | Recarga en caliente durante el desarrollo |
 | **Maven** | — | Gestión de dependencias y construcción |
 | **Docker** | — | Contenedorización con multi-stage build |
-| **Render** | — | Plataforma de despliegue del contenedor Docker (CI/CD desde GitHub) |
+| **Resend (Java SDK)** | 3.1.0 | API para el envío de correos transaccionales vía HTTP (puerto 443) |
+| **DigitalOcean** | — | Servidor IaaS (Droplet) alojando el contenedor de la aplicación |
+| **Cloudflare Tunnels** | — | Exposición segura del servicio a Internet (Zero Trust) sin abrir puertos públicos entrantes |
 
 ---
 
@@ -87,6 +88,7 @@ src/main/java/com/feedback/feedback/
     │   │       ├── LoginResponseDto       # token + UserResponseDto
     │   │       ├── ForgotPasswordRequestDto # token, email, password
     │   │       └── StartForgotPasswordResponseDto # email, link
+    |   |       └── ConfigurationResponse # Healthcheck de las apis y servicio externos
     │   ├── entity/
     │   │   └── TokenPasswordResetEntity  # Token temporal para reset de contraseña
     │   ├── repository/
@@ -220,9 +222,10 @@ src/main/java/com/feedback/feedback/
 ### 🔐 Auth
 Gestiona la autenticación de usuarios y la recuperación de contraseña.
 - **Login:** Autentica al usuario con `username/password` y devuelve un **token JWT** con el rol embebido junto con los datos del usuario (`LoginResponseDto`).
-- **Forgot Password:** Genera un token UUID temporal, lo almacena en la BD con expiración de 1 hora y envía un correo HTML al email del usuario con el token de recuperación vía **SMTP de Gmail**, utilizando la plantilla `templates/index_mail.html`.
+- **Forgot Password:** Genera un token UUID temporal, lo almacena en la BD con expiración de 1 hora y envía un correo HTML al email del usuario con el token de recuperación vía **Resend API**, utilizando la plantilla `templates/index_mail.html`.
 - **Reset Password:** Valida el token recibido junto con el email, verifica que no haya expirado, actualiza la contraseña del usuario (encriptada con BCrypt) y marca el token como usado.
 - **Health Check:** Endpoint simple (`GET /auth/health-check`) para verificar que el servicio está activo.
+- **Comfiguration-Info:** Endpoint de Admin (`GET /auth/configuraation`) para verificar si las apis y servicios estan conectados correctamente
 
 ### 💬 Feedback
 Módulo principal del sistema. Permite enviar feedback **anónimo** a cualquier usuario registrado.
@@ -274,9 +277,8 @@ URL_DB=jdbc:postgresql://<host>:<port>/<database>
 USER_DB=<usuario_db>
 PASSWORD_DB=<password_db>
 
-# Email SMTP (Gmail)
-EMAIL_USER=<tu_email>@gmail.com
-EMAIL_PASSWORD=<app_password_de_gmail>
+# Email Via Resend API 
+RESEND_API_KEY=<api_key>
 
 # JWT
 JWT_SECRET=<clave_secreta_min_256_bits>
@@ -286,7 +288,7 @@ JWT_EXPIRATION=3600000
 SPRING_PROFILES_ACTIVE=local
 ```
 
-> **Nota sobre Gmail:** Debes generar una **Contraseña de aplicación** desde la configuración de seguridad de tu cuenta Google (no usar tu contraseña normal).
+> **Nota sobre Resend:** La API Key debe ser generada desde el panel de control de [Resend](https://resend.com). Asegúrate de que el dominio `automasilabo.space` esté verificado y configurado en tu cuenta para garantizar la entregabilidad de correos.
 
 ### Configuración YAML (`application.yaml`)
 
@@ -311,20 +313,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_USER}
-    password: ${EMAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}
+resend:
+  api-key: ${RESEND_API_KEY}
 ```
 
 ---
@@ -341,21 +334,22 @@ spring:
 
 ### Autorización basada en Roles y Privilegios
 
-| Recurso | Método | Acceso |
-|---|---|---|
-| `/auth/**` | ALL | 🌐 Público |
-| `/users` | POST | 🌐 Público (registro) |
-| `/feedbacks/**` | POST | 🌐 Público (envío anónimo) |
-| `/feedbacks/owners` | GET | 🌐 Público |
-| `/users/admin/**` | POST | 🔴 Solo `ROLE_ADMIN` |
-| `/roles/**` | ALL | 🔴 Solo `ROLE_ADMIN` |
-| `/privileges/**` | ALL | 🔴 Solo `ROLE_ADMIN` |
-| `/users/**` | GET | 🟡 Requiere `READ_USER` |
-| `/users/**` | PUT | 🟡 Requiere `UPDATE_USER` |
-| `/users/**` | DELETE | 🟡 Requiere `DELETE_USER` |
-| `/feedbacks/**` | GET | 🟡 Requiere `READ_FEEDBACK` |
-| `/feedbacks/**` | PUT | 🟡 Requiere `UPDATE_FEEDBACK` |
-| `/feedbacks/**` | DELETE | 🟡 Requiere `DELETE_FEEDBACK` |
+| Recurso               | Método | Acceso |
+|-----------------------|--------|---|
+| `/auth/**`            | ALL    | 🌐 Público |
+| `/auth/configuration` | GET     | 🔴 Solo `ROLE_ADMIN` |
+| `/users`              | POST   | 🌐 Público (registro) |
+| `/feedbacks/**`       | POST   | 🌐 Público (envío anónimo) |
+| `/feedbacks/owners`   | GET    | 🌐 Público |
+| `/users/admin/**`     | POST   | 🔴 Solo `ROLE_ADMIN` |
+| `/roles/**`           | ALL    | 🔴 Solo `ROLE_ADMIN` |
+| `/privileges/**`      | ALL    | 🔴 Solo `ROLE_ADMIN` |
+| `/users/**`           | GET    | 🟡 Requiere `READ_USER` |
+| `/users/**`           | PUT    | 🟡 Requiere `UPDATE_USER` |
+| `/users/**`           | DELETE | 🟡 Requiere `DELETE_USER` |
+| `/feedbacks/**`       | GET    | 🟡 Requiere `READ_FEEDBACK` |
+| `/feedbacks/**`       | PUT    | 🟡 Requiere `UPDATE_FEEDBACK` |
+| `/feedbacks/**`       | DELETE | 🟡 Requiere `DELETE_FEEDBACK` |
 
 ### CORS
 
@@ -388,11 +382,13 @@ Todas las entidades principales (excepto `FeedbackEntity` y `TokenPasswordResetE
 | `POST` | `/auth/forgot-password/{email}` | Solicitar reset de contraseña | `email` como path variable |
 | `PUT` | `/auth/reset-password` | Restablecer contraseña con token | `{ "token", "email", "password" }` |
 | `GET` | `/auth/health-check` | Verificar estado del servicio | — |
+| `GET` | `/auth/configuration` | Verificar estado de APIs y servicios externos | — (Solo ADMIN) |
 
 **Respuestas destacadas:**
 - **Login:** Retorna `{ "token": "jwt...", "user": { "id", "username", "email", "role" } }`
 - **Forgot Password:** Retorna `{ "email": "...", "link": "..." }` y envía correo HTML con el token.
 - **Reset Password:** Retorna un `String` confirmando el restablecimiento.
+- **Configuration:** Retorna `{ "email_status": "OK_RESEND_API|MISSING_RESEND_KEY", "jwt_status": "OK|MISSING", "db_status": "OK|CONNECTION_ERROR|INVALID_CONNECTION" }`
 
 ### 👤 Users — `/users`
 
@@ -452,7 +448,7 @@ Todas las entidades principales (excepto `FeedbackEntity` y `TokenPasswordResetE
 - **Java 21** (JDK)
 - **Maven 3.9+**
 - **PostgreSQL** (local o remoto)
-- Cuenta de **Gmail** con contraseña de aplicación para el envío de correos
+- **API Key de Resend** — Obtenida desde [resend.com](https://resend.com) con el dominio `automasilabo.space` configurado para envío de correos.
 
 ### Pasos
 
@@ -469,10 +465,10 @@ Todas las entidades principales (excepto `FeedbackEntity` y `TokenPasswordResetE
    URL_DB=jdbc:postgresql://localhost:5432/feedback_db
    USER_DB=postgres
    PASSWORD_DB=tu_password
-   EMAIL_USER=tu_email@gmail.com
-   EMAIL_PASSWORD=tu_app_password
+   RESEND_API_KEY=tu_api_key_de_resend
    JWT_SECRET=tu_clave_secreta_de_al_menos_256_bits
    JWT_EXPIRATION=3600000
+   SPRING_PROFILES_ACTIVE=local
    ```
 
 3. **Ejecutar la aplicación:**
@@ -509,8 +505,7 @@ docker run -d \
   -e URL_DB=jdbc:postgresql://host:5432/feedback_db \
   -e USER_DB=postgres \
   -e PASSWORD_DB=tu_password \
-  -e EMAIL_USER=tu_email@gmail.com \
-  -e EMAIL_PASSWORD=tu_app_password \
+  -e RESEND_API_KEY=tu_api_key_de_resend \
   -e JWT_SECRET=tu_clave_secreta \
   -e JWT_EXPIRATION=3600000 \
   --name feedback-api \
@@ -531,35 +526,49 @@ docker run -d \
 
 ### Infraestructura
 
-| Servicio | Plataforma | Descripción |
+La aplicación cuenta con una arquitectura de despliegue moderna, segura y autogestionada, separando la capa de datos de la lógica de negocio y aplicando principios de red *Zero Trust*.
+
+### Arquitectura de Red y Servicios
+
+| Componente | Plataforma | Descripción |
 |---|---|---|
-| **API Backend** | [Render](https://render.com) | Contenedor Docker desplegado con CI/CD automático desde GitHub |
-| **Base de Datos** | [Supabase](https://supabase.com) | Instancia PostgreSQL gestionada en la nube |
+| **Base de Datos** | [Supabase](https://supabase.com) | Instancia PostgreSQL gestionada en la nube conectada a través de un pooler transaccional (puerto 6543). |
+| **API Backend** | [DigitalOcean](https://digitalocean.com) | Droplet (Servidor Virtual Linux) ejecutando la aplicación dentro de un contenedor Docker aislado. |
+| **Exposición Web** | [Cloudflare Tunnels](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) | Demonio (`cloudflared`) en el servidor que crea un túnel cifrado saliente hacia Cloudflare. Esto permite enrutar tráfico HTTP/HTTPS al dominio oficial (`feedback-api.automasilabo.space`) **sin necesidad de abrir puertos entrantes (como el 80 o 443) en el firewall de DigitalOcean**, previniendo ataques directos al servidor. |
+| **Mailing** | [Resend](https://resend.com) | Servicio de envío de correos transaccionales vía HTTP REST (puerto 443). Configurado con el dominio `automasilabo.space` para garantizar entregabilidad. Elude eficazmente los bloqueos de puertos SMTP (25/465/587) en DigitalOcean. |
 
-### Flujo de Despliegue (CI/CD)
+### Flujo de Despliegue Manual (Git -> Docker)
 
-```
-GitHub (push) → Render detecta cambios → Build Docker → Deploy automático
-```
+El proceso de actualización en el servidor de producción en DigitalOcean sigue un enfoque basado en control de versiones y empaquetado con contenedores Docker:
 
-1. El repositorio en **GitHub** está conectado a **Render**.
-2. Cada `push` a la rama principal dispara un nuevo build automático.
-3. Render construye la imagen Docker usando el `Dockerfile` multi-stage.
-4. Las variables de entorno (`URL_DB`, `JWT_SECRET`, `EMAIL_USER`, etc.) se configuran directamente en el dashboard de Render.
-5. La aplicación se conecta a la base de datos **PostgreSQL alojada en Supabase** mediante la URL JDBC configurada.
+1. **Fusión de cambios** en la rama `main` en el repositorio remoto (GitHub).
+2. **Conexión SSH** al Droplet de DigitalOcean.
+3. **Extracción de los nuevos cambios** en la carpeta del proyecto:
+   ```bash
+   cd /ruta/del/proyecto && git pull origin main
+   ```
+4. **Reconstrucción de la imagen** optimizada (Multi-stage) para compilar el `.jar`:
+   ```bash
+   docker build -t feedback-app:latest .
+   ```
+5. **Detención del contenedor anterior** y **arranque del nuevo**:
+   ```bash
+   docker stop feedback-api
+   docker rm feedback-api
+   docker run -d \
+     --name feedback-api \
+     --network general-network \
+     -e URL_DB=<supabase_url> \
+     -e USER_DB=<supabase_user> \
+     -e PASSWORD_DB=<supabase_password> \
+     -e RESEND_API_KEY=<api_key> \
+     -e JWT_SECRET=<jwt_secret> \
+     -e JWT_EXPIRATION=3600000 \
+     -e SPRING_PROFILES_ACTIVE=dev \
+     feedback-app:latest
+   ```
 
-### Configuración en Render
-
-- **Tipo de servicio:** Web Service (Docker)
-- **Puerto:** `8082`
-- **Variables de entorno:** Se configuran en Render → Environment → agregar cada variable (`URL_DB`, `USER_DB`, `PASSWORD_DB`, `EMAIL_USER`, `EMAIL_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION`)
-- **Auto-Deploy:** Habilitado desde el repositorio de GitHub
-
-### Configuración en Supabase
-
-- **Motor:** PostgreSQL
-- **Conexión:** Pooler (Transaction mode) via `jdbc:postgresql://<host>:6543/postgres`
-- **Seguridad:** Credenciales gestionadas como variables de entorno en Render (nunca hardcodeadas)
+> **Red `general-network`:** El contenedor está conectado a la red Docker `general-network` donde también reside el demonio de **Cloudflare Tunnel** (`cloudflared`), permitiendo enrutar el tráfico cifrado hacia el dominio `feedback-api.automasilabo.space` sin exponer puertos públicamente.
 
 ---
 
@@ -570,7 +579,8 @@ GitHub (push) → Render detecta cambios → Build Docker → Deploy automático
    ├── Se valida que el email exista en la BD
    ├── Se genera un token UUID único
    ├── Se almacena en token_password_reset con expiración de 1 hora
-   ├── Se envía un correo HTML (templates/index_mail.html) con el token al email
+   ├── Se envía un correo HTML (templates/index_mail.html) con el token al email mediante Resend API
+   |  (El correo incluye un link al frontend con el token como query param, e.g. https://feedback-api.automasilabo.space/reset-password?token=xxx)
    └── Se responde con { email, link }
 
 2. PUT /auth/reset-password
@@ -627,5 +637,5 @@ Formato estándar de respuesta de error:
 
 ---
 
-> Desarrollado con ☕ Java 21 + Spring Boot 4.0.2
+> Desarrollado con ☕ Java 21 + Spring Boot 4.0.2 por @IzpoDev
 
