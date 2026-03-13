@@ -4,6 +4,7 @@ package com.feedback.feedback.modules.auth.service.impl;
 import com.feedback.feedback.common.exception.EntityNotFoundException;
 import com.feedback.feedback.common.mapper.UserMapper;
 import com.feedback.feedback.common.util.JwtUtil;
+import com.feedback.feedback.modules.auth.controller.dto.ConfigurationResponse;
 import com.feedback.feedback.modules.auth.controller.dto.ForgotPasswordRequestDto;
 import com.feedback.feedback.modules.auth.controller.dto.LoginRequestDto;
 import com.feedback.feedback.modules.auth.controller.dto.LoginResponseDto;
@@ -18,6 +19,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,10 +33,12 @@ import org.springframework.util.StreamUtils;
 import com.feedback.feedback.modules.auth.service.AuthService;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
+import javax.sql.DataSource;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +50,8 @@ public class AuthServiceImpl implements AuthService {
     private final JavaMailSender javaMailSender;
     private final TokenPasswordResetRepository tokenPasswordResetRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Environment environment;
+    private final DataSource dataSource;
 
     @Override
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
@@ -136,6 +142,47 @@ public class AuthServiceImpl implements AuthService {
         token.setUsed(Boolean.TRUE);
         tokenPasswordResetRepository.save(token);
         return "El usuario " + user.getUsername() + " restablecio su contraseña con exito";
+    }
+
+    @Override
+    public ConfigurationResponse getConfiguration() {
+        ConfigurationResponse response = new ConfigurationResponse();
+        response.email_status = getEmailStatus();
+        response.jwt_status = getJwtStatus();
+        response.db_status = getDatabaseStatus();
+        return response;
+    }
+
+    private String getEmailStatus() {
+        String emailUser = environment.getProperty("spring.mail.username");
+        String emailPassword = environment.getProperty("spring.mail.password");
+
+        if (isMissingValue(emailUser) || isMissingValue(emailPassword)) {
+            return "MISSING";
+        }
+        return "OK";
+    }
+
+    private String getJwtStatus() {
+        String jwtSecret = environment.getProperty("spring.jwt.secret");
+        String jwtExpiration = environment.getProperty("spring.jwt.expiration");
+
+        if (isMissingValue(jwtSecret) || isMissingValue(jwtExpiration)) {
+            return "MISSING";
+        }
+        return "OK";
+    }
+
+    private String getDatabaseStatus() {
+        try (var connection = dataSource.getConnection()) {
+            return connection.isValid(2) ? "OK" : "INVALID_CONNECTION";
+        } catch (SQLException ex) {
+            return "CONNECTION_ERROR";
+        }
+    }
+
+    private boolean isMissingValue(String value) {
+        return value == null || value.isBlank() || value.contains("${");
     }
 
 }

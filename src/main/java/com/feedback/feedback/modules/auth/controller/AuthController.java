@@ -1,5 +1,6 @@
 package com.feedback.feedback.modules.auth.controller;
 
+import com.feedback.feedback.modules.auth.controller.dto.ConfigurationResponse;
 import com.feedback.feedback.modules.auth.controller.dto.ForgotPasswordRequestDto;
 import com.feedback.feedback.modules.auth.controller.dto.LoginRequestDto;
 import com.feedback.feedback.modules.auth.controller.dto.LoginResponseDto;
@@ -36,5 +37,11 @@ public class AuthController {
     @GetMapping("/health-check")
     public ResponseEntity<?> getHealthCheck(){
         return new ResponseEntity<>("OK", HttpStatus.OK);
+    }
+
+    @GetMapping("/configuration")
+    public ResponseEntity<ConfigurationResponse> getConfiguration() {
+        ConfigurationResponse response = authService.getConfiguration();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
