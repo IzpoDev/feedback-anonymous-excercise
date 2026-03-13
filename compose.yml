@@ -1,0 +1,18 @@
+services:
+  feedback-api:
+    container_name: feedback-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: izpodev/feedback-api:latest
+    env_file:
+      - ./dev.env
+    restart: unless-stopped
+    expose:
+      - "8082"
+    networks:
+      - general-network
+
+networks:
+  general-network:
+    external: true
