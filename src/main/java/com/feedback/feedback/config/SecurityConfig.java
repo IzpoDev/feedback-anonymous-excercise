@@ -37,6 +37,7 @@ public class SecurityConfig {
         // 2. Configurar las reglas de autorización
         http.authorizeHttpRequests(
                 requests -> requests
+                        .requestMatchers(HttpMethod.GET,"/auth/configuration").hasRole("ADMIN")
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
@@ -59,7 +60,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/feedbacks/**").hasAuthority("READ_FEEDBACK")
                         .requestMatchers(HttpMethod.GET, "/feedbacks/owner/**").hasAnyRole("ADMIN", "OWNER")
                         .requestMatchers("/privileges/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET,"/auth/configuration").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
         );
         // 3. Deshabilitar el formulario de login por defecto de Spring.

@@ -15,13 +15,17 @@ import com.feedback.feedback.modules.auth.repository.TokenPasswordResetRepositor
 import com.feedback.feedback.modules.user.model.entity.UserEntity;
 import com.feedback.feedback.modules.user.repository.UserRepository;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+//import jakarta.mail.MessagingException;
+//import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.env.Environment;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+//import org.springframework.mail.javamail.JavaMailSender;
+//import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,10 +48,14 @@ import javax.sql.DataSource;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    @Value("${resend.api.key}")
+    private String resendApiKey;
+    @Value("${web.origin}")
+    private String urlOrigin;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    private final JavaMailSender javaMailSender;
+    //private final JavaMailSender javaMailSender;
     private final TokenPasswordResetRepository tokenPasswordResetRepository;
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
@@ -99,27 +107,32 @@ public class AuthServiceImpl implements AuthService {
             //Creacion del mensaje en formato html para enviar el correo
             try {
                 ClassPathResource resource = new ClassPathResource("templates/index_mail.html");
-                String htmlTemplate= StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
-                String htmlContent = htmlTemplate
+                String htmlContent = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+                String messageContent = htmlContent
                         .replace("{{email}}", email)
-                        .replace("{{token}}", token);
+                        .replace("{{token}}", token)
+                        .replace("{{url}}", urlOrigin);
 
-                MimeMessage message = javaMailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                //  2. Instanciamos Resend y armamos el correo
+                Resend resend = new Resend(resendApiKey);
 
-                helper.setTo(email);
-                helper.setSubject("Recuperación de contraseña - Feedback App");
-                helper.setText(htmlContent, true);
-                //Envio del correo
-                javaMailSender.send(message);
+                CreateEmailOptions params = CreateEmailOptions.builder()
+                        .from("Feedback App <no-reply@automasilabo.space>")
+                        .to(email)
+                        .subject("Recuperación de contraseña - Feedback App")
+                        .html(messageContent)
+                        .build();
+
+                // 3. Enviamos el correo vía HTTP
+                resend.emails().send(params);
+
             } catch (IOException e) {
                 throw new RuntimeException("Error al cargar la plantilla de correo", e);
-            }
-            catch (MessagingException ex){
-                throw new RuntimeException("Error al crear el mensaje de correo", ex);
+            } catch (ResendException e) {
+                throw new RuntimeException("Error en la API de Resend al enviar el correo", e);
             }
 
-            return new StartForgotPasswordResponseDto(email, "http://localhost:8081/auth/reset-password");
+            return new StartForgotPasswordResponseDto(email, "http://feedback-api.automasilabo.space/auth/reset-password");
         } else {
             throw new EntityNotFoundException("Usuario no encontrado con el email " + email);
         }
@@ -127,9 +140,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String resetPassword(ForgotPasswordRequestDto forgotPasswordRequestDto) {
+
         TokenPasswordResetEntity token = tokenPasswordResetRepository.findByToken(forgotPasswordRequestDto.getToken())
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Token de reset Password no encontrado")
+                        () -> new EntityNotFoundException("Token de reset Password no encontrado o ya fue usado")
         );
         if (token.getExpireDate().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Token de reset Password expirado");
@@ -154,13 +168,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private String getEmailStatus() {
-        String emailUser = environment.getProperty("spring.mail.username");
-        String emailPassword = environment.getProperty("spring.mail.password");
 
-        if (isMissingValue(emailUser) || isMissingValue(emailPassword)) {
-            return "MISSING";
+        String resendKey = environment.getProperty("resend.api.key");
+
+        if (isMissingValue(resendKey)) {
+            return "MISSING_RESEND_KEY";
         }
-        return "OK";
+        return "OK_RESEND_API";
     }
 
     private String getJwtStatus() {
