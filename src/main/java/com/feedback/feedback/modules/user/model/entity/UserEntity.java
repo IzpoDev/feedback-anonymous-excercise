@@ -29,6 +29,8 @@ public class UserEntity {
     private String email;
     @Column(name = "password")
     private String password;
+    @Column(name="profile_picture_url")
+    private String profilePictureUrl;
     @Column(name = "active")
     private Boolean active;
     @ManyToOne

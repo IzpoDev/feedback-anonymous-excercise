@@ -24,5 +24,12 @@ spring:
 resend:
   api:
     key: ${RESEND_API_KEY}
+supabase:
+  bucket:
+    access-key: ${SB_BUCKET_ACCESS_KEY_ID}
+    secret-key: ${SB_BUCKET_SECRET_ACCESS_KEY}
+    endpoint: ${SB_BUCKET_ENDPOINT}
+    region: ${SB_BUCKET_REGION}
+    name: avatars
 web:
   origin: ${URL_ORIGIN}

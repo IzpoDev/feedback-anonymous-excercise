@@ -2,6 +2,7 @@ package com.feedback.feedback.modules.user.service.impl;
 
 import com.feedback.feedback.common.exception.EntityNotFoundException;
 import com.feedback.feedback.common.util.JwtUtil;
+import com.feedback.feedback.common.util.StorageService;
 import com.feedback.feedback.modules.auth.controller.dto.LoginResponseDto;
 import lombok.RequiredArgsConstructor;
 import com.feedback.feedback.common.mapper.UserMapper;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
 import com.feedback.feedback.modules.role.repository.RoleRepository;
 import com.feedback.feedback.modules.user.repository.UserRepository;
 import com.feedback.feedback.modules.user.service.UserService;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -24,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final JwtUtil jwtUtil;
+    private final StorageService  storageService;
 
     @Override
     public UserResponseDto createUser(UserRequestDto userRequestDto) {
@@ -42,6 +46,7 @@ public class UserServiceImpl implements UserService {
             userEntity.setActive(Boolean.TRUE);
             userEntity.setRole(userOld.getRole());
             userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+            userEntity.setProfilePictureUrl(userEntity.getProfilePictureUrl());
             userRepository.save(userEntity);
         }
 
@@ -50,6 +55,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto getUserById(Long id) {
+
         return UserMapper.toDto(userRepository.getReferenceById(id));
     }
 
@@ -87,6 +93,25 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userEntity);
         }
         else throw new RuntimeException("El usuario con id " + id + " no se encuentra activo o no existe");
+    }
+
+    @Override
+    public UserResponseDto updateUserProfile(Long id, MultipartFile profilePicture) {
+        if(userRepository.existsByIdAndActiveTrue(id)){
+            UserEntity userEntity = userRepository.getReferenceById(id);
+            if(!profilePicture.isEmpty()){
+                try {
+                    String profilePictureUrl = storageService.uploadFile(profilePicture);
+                    userEntity.setProfilePictureUrl(profilePictureUrl);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error al subir la imagen de perfil", e);
+                }
+                return UserMapper.toDto(userRepository.save(userEntity));
+            }
+            return UserMapper.toDto(userRepository.save(userEntity));
+        }
+
+        else throw new EntityNotFoundException("El usuario con id " + id + " no existe");
     }
 
     @Override

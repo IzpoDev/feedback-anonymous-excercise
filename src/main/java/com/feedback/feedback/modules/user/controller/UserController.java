@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.feedback.feedback.modules.user.service.UserService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,6 +23,10 @@ public class UserController {
     public ResponseEntity<UserResponseDto> registerUser(@RequestBody @Valid UserRequestDto userRequestDto){
         UserResponseDto userResponseDto = userService.createUser(userRequestDto);
         return new ResponseEntity<>(userResponseDto, HttpStatus.CREATED);
+    }
+    @PostMapping("/admin")
+    public ResponseEntity<UserResponseDto> registerAdmin(@RequestBody @Valid UserRequestDto userRequestDto){
+        return new ResponseEntity<>(userService.registerAdmin(userRequestDto), HttpStatus.CREATED);
     }
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id){
@@ -43,13 +48,14 @@ public class UserController {
         LoginResponseDto user = userService.updateUser(id, userRequestDto);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
+    @PutMapping("/{id}/profile-picture")
+    public ResponseEntity<UserResponseDto> updateUserProfilePictureUrl(@PathVariable("id") Long id,@RequestParam("profilePicture") MultipartFile profilePicture){
+        UserResponseDto responseDto = userService.updateUserProfile(id, profilePicture);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUserById(@PathVariable Long id){
         userService.deleteUser(id);
         return new ResponseEntity<>("Ususario con id " + id + " Eliminado ", HttpStatus.OK);
-    }
-    @PostMapping("/admin")
-    public ResponseEntity<UserResponseDto> registerAdmin(@RequestBody @Valid UserRequestDto userRequestDto){
-        return new ResponseEntity<>(userService.registerAdmin(userRequestDto), HttpStatus.CREATED);
     }
 }

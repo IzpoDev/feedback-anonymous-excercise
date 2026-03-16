@@ -1,0 +1,39 @@
+package com.feedback.feedback.common.util;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import java.io.IOException;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class StorageService {
+
+    private final S3Client s3Client;
+
+    @Value("${supabase.bucket.name}")
+    private String bucketName;
+    @Value("${supabase.bucket.endpoint}")
+    private String endpoint;
+
+    public String uploadFile(MultipartFile file) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf(".")) : "";
+        String uniqueFilename = UUID.randomUUID().toString() + extension;
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(uniqueFilename)
+                .contentType(file.getContentType())
+                .build();
+        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        return endpoint + "/storage/v1/object/public/" + bucketName + "/" + uniqueFilename;
+    }
+
+}
