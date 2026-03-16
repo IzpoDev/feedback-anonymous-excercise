@@ -24,6 +24,7 @@ public class UserMapper {
         userResponseDto.setEmail(userEntity.getEmail());
         userResponseDto.setUsername(userEntity.getUsername());
         userResponseDto.setRole(userEntity.getRole().getName());
+        userResponseDto.setProfilePictureUrl(userEntity.getProfilePictureUrl());
         return userResponseDto;
     }
     public static List<UserResponseDto> toListDto(List<UserEntity> userEntities){
