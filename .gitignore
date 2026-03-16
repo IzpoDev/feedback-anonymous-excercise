@@ -33,5 +33,5 @@ build/
 .vscode/
 
 /src/main/resources/local.env
-/src/main/resources/dev.env
+/src/main/resources/*.env
 *.env
