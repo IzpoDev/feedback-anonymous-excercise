@@ -33,7 +33,8 @@ public class StorageService {
                 .contentType(file.getContentType())
                 .build();
         s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-        return endpoint + "/storage/v1/object/public/" + bucketName + "/" + uniqueFilename;
+        String projectUrl = endpoint.replace("/storage/v1/s3", "");
+        return projectUrl + "/storage/v1/object/public/" + bucketName + "/" + uniqueFilename;
     }
 
 }
