@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,6 +23,11 @@ public class FeedbackController {
     @PostMapping
     public ResponseEntity<FeedbackResponseDto> createFeedback(@RequestBody @Valid FeedbackRequestDto feedbackRequestDto){
         return new ResponseEntity<>(feedbackService.createFeedback(feedbackRequestDto), HttpStatus.CREATED);
+    }
+    @PostMapping("/audio")
+    public ResponseEntity<FeedbackResponseDto> createFeedbackWithAudio(@RequestParam("audio") MultipartFile audio,
+                                                                       @RequestParam("recipient_id") Long recipientId){
+        return new ResponseEntity<>(feedbackService.createFeedbackWithAudio(audio, recipientId), HttpStatus.CREATED);
     }
     @GetMapping("/{recipientId}")
     public ResponseEntity<List<FeedbackResponseDto>> getAllFeedbacks(@PathVariable Long recipientId){

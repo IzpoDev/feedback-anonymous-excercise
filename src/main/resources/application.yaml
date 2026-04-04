@@ -24,6 +24,13 @@ spring:
 resend:
   api:
     key: ${RESEND_API_KEY}
+#Deepgram para transformcion de audios a feedaback textual
+
+deepgram:
+  api:
+    key: ${DEEPGRAM_API_KEY}
+    url: https://api.deepgram.com/v1/listen?model=nova-2&language=es
+
 supabase:
   bucket:
     access-key: ${SB_BUCKET_ACCESS_KEY_ID}
