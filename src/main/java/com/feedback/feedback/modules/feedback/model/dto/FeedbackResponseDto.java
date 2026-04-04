@@ -16,4 +16,5 @@ public class FeedbackResponseDto {
     private String content;
     private String recipient;
     private LocalDateTime createdAt;
+    private Boolean active;
 }

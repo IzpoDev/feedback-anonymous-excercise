@@ -21,6 +21,7 @@ public class FeedbackMapper {
         feedbackResponseDto.setId(feedbackEntity.getId());
         feedbackResponseDto.setCreatedAt(feedbackEntity.getCreatedAt());
         feedbackResponseDto.setRecipient(feedbackEntity.getRecipient().getUsername());
+        feedbackResponseDto.setActive(feedbackEntity.getActive());
         return feedbackResponseDto;
     }
     public static List<FeedbackResponseDto> toListDto(List<FeedbackEntity> feedbackEntities){
