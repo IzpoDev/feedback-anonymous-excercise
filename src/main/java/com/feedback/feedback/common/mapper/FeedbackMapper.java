@@ -10,6 +10,7 @@ public class FeedbackMapper {
     private FeedbackMapper(){
         throw new IllegalStateException("Clase de Utilidad(Utility Class)");
     }
+
     public static FeedbackEntity toEntity(FeedbackRequestDto feedbackRequestDto){
         FeedbackEntity feedbackEntity = new FeedbackEntity();
         feedbackEntity.setContent(feedbackRequestDto.getContent());
