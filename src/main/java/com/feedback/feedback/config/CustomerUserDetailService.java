@@ -5,6 +5,7 @@ import com.feedback.feedback.modules.privilege.repository.RolePrivilegeRepositor
 import lombok.RequiredArgsConstructor;
 import com.feedback.feedback.modules.user.model.entity.UserEntity;
 import org.jspecify.annotations.NonNull;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -24,6 +25,7 @@ public class CustomerUserDetailService implements UserDetailsService {
     private final RolePrivilegeRepository rolePrivilegeRepository;
 
     @Override
+    @Cacheable(value = "userDetails", key = "#username") // Spring buscará en Redis antes de ejecutar el código de abajo
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByUsernameAndActive(username, Boolean.TRUE)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

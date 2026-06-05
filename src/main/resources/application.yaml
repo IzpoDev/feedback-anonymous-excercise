@@ -17,6 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      url : ${REDIS_URL:redis://localhost:6379}
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}

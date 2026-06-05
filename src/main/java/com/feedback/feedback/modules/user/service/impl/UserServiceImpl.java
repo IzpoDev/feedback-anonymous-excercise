@@ -11,6 +11,7 @@ import com.feedback.feedback.common.mapper.UserMapper;
 import com.feedback.feedback.modules.user.model.dto.UserRequestDto;
 import com.feedback.feedback.modules.user.model.dto.UserResponseDto;
 import com.feedback.feedback.modules.user.model.entity.UserEntity;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.feedback.feedback.modules.role.repository.RoleRepository;
@@ -64,6 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "userDetails", key = "#user.username")
     public LoginResponseDto updateUser(Long id, UserRequestDto userRequestDto) {
         if(userRepository.existsByIdAndActiveTrue(id)){
             UserEntity user = userRepository.getReferenceById(id);
@@ -90,6 +92,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "userDetails", allEntries = true)
     public void deleteUser(Long id) {
         if(!userRepository.existsByIdAndActiveTrue(id)){
             UserEntity userEntity = userRepository.getReferenceById(id);
