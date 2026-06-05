@@ -1,5 +1,6 @@
 package com.feedback.feedback.modules.feedback.service.impl;
 
+import com.feedback.feedback.common.exception.BusinessLogicException;
 import com.feedback.feedback.common.mapper.FeedbackMapper;
 import com.feedback.feedback.common.mapper.UserMapper;
 import com.feedback.feedback.common.util.DeepgramService;
@@ -26,7 +27,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public FeedbackResponseDto createFeedback(FeedbackRequestDto feedbackRequestDto) {
         if (feedbackRequestDto.getContent().isEmpty()) {
-            throw new RuntimeException("El contenido del feedback no puede estar vacío");
+            throw new BusinessLogicException("El contenido del feedback no puede estar vacío");
         }
         FeedbackEntity feedbackEntity = FeedbackMapper.toEntity(feedbackRequestDto);
         feedbackEntity.setRecipient(userRepository.getReferenceById(feedbackRequestDto.getRecipientId()));
@@ -38,7 +39,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public FeedbackResponseDto createFeedbackWithAudio(MultipartFile audio, Long recipientId) {
         if (audio == null || audio.isEmpty()){
-            throw new RuntimeException("Error: El audio no puede ser nulo o estar vacío");
+            throw new BusinessLogicException("Error: El audio no puede ser nulo o estar vacío");
         }
         String content = deepgramService.transcribeAudio(audio);
         FeedbackRequestDto request = new FeedbackRequestDto(content,recipientId);

@@ -1,6 +1,8 @@
 package com.feedback.feedback.modules.user.service.impl;
 
+import com.feedback.feedback.common.exception.DuplicateResouceException;
 import com.feedback.feedback.common.exception.EntityNotFoundException;
+import com.feedback.feedback.common.exception.StorageException;
 import com.feedback.feedback.common.util.JwtUtil;
 import com.feedback.feedback.common.util.StorageService;
 import com.feedback.feedback.modules.auth.controller.dto.LoginResponseDto;
@@ -41,7 +43,9 @@ public class UserServiceImpl implements UserService {
             ));
             userRepository.save(userEntity);
         } else {
-            UserEntity userOld = userRepository.findByUsernameAndActiveFalse(userEntity.getUsername()).orElseThrow(() -> new RuntimeException("Username ya se encuentra en uso"));
+            UserEntity userOld = userRepository.findByUsernameAndActiveFalse(userEntity.getUsername())
+                    .orElseThrow(
+                            () -> new DuplicateResouceException("Username ya se encuentra en uso"));
             userEntity.setId(userOld.getId());
             userEntity.setActive(Boolean.TRUE);
             userEntity.setRole(userOld.getRole());
@@ -71,7 +75,7 @@ public class UserServiceImpl implements UserService {
             response.setToken(jwtUtil.generateToken(user.getUsername(),user.getRole().getName()));
             return response;
         }
-        throw new RuntimeException("El usuario con id " + id + " no se encuentra activo o no existe");
+        throw new EntityNotFoundException("El usuario con id " + id + " no se encuentra activo o no existe");
     }
 
     @Override
@@ -92,7 +96,7 @@ public class UserServiceImpl implements UserService {
             userEntity.setActive(Boolean.FALSE);
             userRepository.save(userEntity);
         }
-        else throw new RuntimeException("El usuario con id " + id + " no se encuentra activo o no existe");
+        else throw new EntityNotFoundException("El usuario con id " + id + " no se encuentra activo o no existe");
     }
 
     @Override
@@ -104,7 +108,7 @@ public class UserServiceImpl implements UserService {
                     String profilePictureUrl = storageService.uploadFile(profilePicture);
                     userEntity.setProfilePictureUrl(profilePictureUrl);
                 } catch (IOException e) {
-                    throw new RuntimeException("Error al subir la imagen de perfil", e);
+                    throw new StorageException("Error al subir la imagen de perfil", e);
                 }
                 return UserMapper.toDto(userRepository.save(userEntity));
             }
@@ -126,7 +130,9 @@ public class UserServiceImpl implements UserService {
             userRepository.save(userEntity);
             return UserMapper.toDto(userEntity);
         } else {
-            userEntity = userRepository.findByUsername(userEntity.getUsername()).orElseThrow(() -> new EntityNotFoundException("Username no se encuentra en la base de datos"));
+            userEntity = userRepository.findByUsername(userEntity.getUsername())
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("Username no se encuentra en la base de datos"));
             userEntity.setActive(Boolean.TRUE);
             userEntity.setRole(roleRepository.findByName("ADMIN").orElseThrow());
             return UserMapper.toDto(userRepository.save(userEntity));

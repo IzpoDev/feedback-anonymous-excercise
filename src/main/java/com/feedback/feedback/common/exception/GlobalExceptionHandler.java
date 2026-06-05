@@ -77,4 +77,28 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    public ResponseEntity<ErrorResponse> handleBusinessLogicException(BusinessLogicException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(), //400
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(DuplicateResouceException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(), //409
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+    public ResponseEntity<ErrorResponse> handleStorageException(StorageException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+          HttpStatus.INTERNAL_SERVER_ERROR.value(), //500
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<ErrorResponse>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

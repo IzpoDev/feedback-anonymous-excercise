@@ -1,6 +1,7 @@
 package com.feedback.feedback.modules.auth.service.impl;
 
 
+import com.feedback.feedback.common.exception.BusinessLogicException;
 import com.feedback.feedback.common.exception.EntityNotFoundException;
 import com.feedback.feedback.common.mapper.UserMapper;
 import com.feedback.feedback.common.util.JwtUtil;
@@ -143,10 +144,10 @@ public class AuthServiceImpl implements AuthService {
 
         TokenPasswordResetEntity token = tokenPasswordResetRepository.findByToken(forgotPasswordRequestDto.getToken())
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Token de reset Password no encontrado o ya fue usado")
+                        () -> new BusinessLogicException("Token de reset Password no encontrado o ya fue usado")
         );
         if (token.getExpireDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token de reset Password expirado");
+            throw new BusinessLogicException("Token de reset Password expirado");
         }
         UserEntity user = userRepository.findByEmail(forgotPasswordRequestDto.getEmail()).orElseThrow(
                 () -> new EntityNotFoundException("Usuario no encontrado con el email " + forgotPasswordRequestDto.getEmail())

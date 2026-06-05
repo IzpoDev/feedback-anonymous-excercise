@@ -20,12 +20,12 @@ spring:
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}
-
+#Api para enviar correos de confirmacion etc.
 resend:
   api:
     key: ${RESEND_API_KEY}
-#Deepgram para transformcion de audios a feedaback textual
 
+#Deepgram para transformcion de audios a feedaback textual
 deepgram:
   api:
     key: ${DEEPGRAM_API_KEY}

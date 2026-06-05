@@ -3,6 +3,7 @@ package com.feedback.feedback.common.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.feedback.feedback.common.exception.StorageException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -53,9 +54,9 @@ public class DeepgramService {
             return transcriptNode.asText();
 
         } catch (IOException e){
-            throw new RuntimeException("Error al cargar el buffer del audio", e);
+            throw new StorageException("Error al cargar el buffer del audio", e);
         } catch (Exception e) {
-            throw new RuntimeException("Error al transcribir el audio", e);
+            throw new StorageException("Error al transcribir el audio", e);
         }
     }
 }
