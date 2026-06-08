@@ -39,6 +39,7 @@
 | **Maven** | — | Gestión de dependencias y construcción |
 | **Docker** | — | Contenedorización con multi-stage build |
 | **Resend (Java SDK)** | 3.1.0 | API para el envío de correos transaccionales vía HTTP (puerto 443) |
+| **Deepgram API** | — | API de transcripción de audio a texto vía HTTP REST. Modelo: `nova-2`, idioma: español (es) |
 | **DigitalOcean** | — | Servidor IaaS (Droplet) alojando el contenedor de la aplicación |
 | **Cloudflare Tunnels** | — | Exposición segura del servicio a Internet (Zero Trust) sin abrir puertos públicos entrantes |
 
@@ -175,24 +176,24 @@ src/main/java/com/feedback/feedback/
 ┌──────────────┐       ┌──────────────┐       ┌───────────────────┐       ┌──────────────────┐
 │    roles     │       │    users     │       │    feedbacks      │       │   privileges     │
 ├──────────────┤       ├──────────────┤       ├───────────────────┤       ├──────────────────┤
-│ id (PK)      │◄──┐   │ id (PK)      │◄──┐   │ id (PK)           │       │ id (PK)          │
-│ name         │   └───│ role_id (FK) │   └───│ user_id (FK)      │       │ name (UNIQUE)    │
-│ description  │       │ username     │       │ content           │       │ description      │
-│ active       │       │ email        │       │ active            │       │ active           │
-│ created_by   │       │ password     │       │ created_at        │       │ created_by       │
-│ created_date │       │ active       │       └───────────────────┘       │ created_date     │
-│ last_mod_by  │       │ created_by   │                                   │ last_modified    │
-│ last_mod_date│       │ created_date │                                   │ last_modified_by │
-└──────┬───────┘       │ last_modified│                                   └────────┬─────────┘
-       │               │ last_mod_by  │                                            │
-       │               └──────┬───────┘                                            │
-       │                      │                                                    │
-       │               ┌──────┘                                                    │
-       │               │                                                           │
-       │     ┌─────────┴─────────────┐                                             │
-       │     │   role_privileges     │  (Tabla Intermedia)                         │
-       │     ├───────────────────────┤                                             │
-       └────►│ id (PK)               │◄────────────────────────────────────────────┘
+│ id (PK)      │◄──┐   │ id (PK)      │◄──┬───│ user_id (FK)      │       │ id (PK)          │
+│ name         │   └───│ role_id (FK) │   │   │ content           │       │ name (UNIQUE)    │
+│ description  │       │ username     │   │   │ active            │       │ description      │
+│ active       │       │ email        │   │   │ created_at        │       │ active           │
+│ created_by   │       │ password     │   │   └───────────────────┘       │ created_by       │
+│ created_date │       │ active       │   │                               │ created_date     │
+│ last_mod_by  │       │ created_by   │   │                               │ last_modified    │
+│ last_mod_date│       │ created_date │   │                               │ last_modified_by │
+└──────┬───────┘       │ last_modified│   │                               └────────┬─────────┘
+       │               │ last_mod_by  │   │                                        │
+       │               └──────┬───────┘   │                                        │
+       │                      │           │                                        │
+       │               ┌──────┘           │                                        │
+       │               │                  │                                        │
+       │     ┌─────────┴─────────────┐    │                                        │
+       │     │   role_privileges     │    │  (Tabla Intermedia)                    │
+       │     ├───────────────────────┤    │                                        │
+       └────►│ id (PK)               │◄───┴────────────────────────────────────────┘
              │ role_id (FK)          │
              │ privilege_id (FK)     │
              │ active                │
@@ -200,17 +201,17 @@ src/main/java/com/feedback/feedback/
              │ created_date          │
              │ last_modified         │
              │ last_modified_by      │
-             └─────────┬─────────────┘
-                       |   
-       ┌───────────────┴─────────┐
-       │  token_password_reset   │
-       ├─────────────────────────┤
-       │ id (PK)                 │
-       │ token (UNIQUE)          │
-       │ user_id (FK) → users    │
-       │ expire_date             │
-       │ used                    │
-       └─────────────────────────┘
+             └─────────────────────────┘
+                       │   
+       ┌───────────────┴──────────────┐
+       │  token_password_reset        │
+       ├──────────────────────────────┤
+       │ id (PK)                      │
+       │ token (UNIQUE)               │
+       │ user_id (FK) ───────────────►│ users
+       │ expire_date                  │
+       │ used                         │
+       └──────────────────────────────┘
 ```
 
 > **Nota:** La relación entre `roles` y `privileges` se gestiona mediante la entidad intermedia `RolePrivilegeEntity` en lugar de un `@ManyToMany` directo, lo que permite auditoría, control de estado activo y mayor flexibilidad.
@@ -228,8 +229,9 @@ Gestiona la autenticación de usuarios y la recuperación de contraseña.
 - **Comfiguration-Info:** Endpoint de Admin (`GET /auth/configuraation`) para verificar si las apis y servicios estan conectados correctamente
 
 ### 💬 Feedback
-Módulo principal del sistema. Permite enviar feedback **anónimo** a cualquier usuario registrado.
-- Crear feedback sin necesidad de autenticación (anónimo), indicando el `content` y el `recipientId`.
+Módulo principal del sistema. Permite enviar feedback **anónimo** a cualquier usuario registrado, con soporte para texto directo o transcripción de audio mediante **Deepgram API**.
+- Crear feedback anónimo con contenido de texto, indicando el `content` y el `recipientId`.
+- **Crear feedback desde audio:** Enviar un archivo de audio (`.wav`, `.mp3`, `.flac`, etc.) que se transcribe automáticamente a texto mediante **Deepgram API** (modelo `nova-2`, idioma español). El audio se procesa y se crea el feedback con la transcripción como contenido.
 - Listar todos los feedbacks o filtrar por `recipientId`.
 - Obtener un feedback específico por su `id`.
 - Actualizar y eliminar feedbacks (eliminación lógica vía campo `active`; requiere privilegios).
@@ -284,11 +286,16 @@ RESEND_API_KEY=<api_key>
 JWT_SECRET=<clave_secreta_min_256_bits>
 JWT_EXPIRATION=3600000
 
+# Deepgram API (Transcripción de audio)
+DEEPGRAM_API_KEY=<api_key_deepgram>
+
 # Perfil activo de Spring (local | dev)
 SPRING_PROFILES_ACTIVE=local
 ```
 
 > **Nota sobre Resend:** La API Key debe ser generada desde el panel de control de [Resend](https://resend.com). Asegúrate de que el dominio `automasilabo.space` esté verificado y configurado en tu cuenta para garantizar la entregabilidad de correos.
+
+> **Nota sobre Deepgram:** La API Key debe ser generada desde el panel de control de [Deepgram](https://console.deepgram.com). El modelo configurado es `nova-2` con idioma español (`es`). Más información: [Deepgram API Documentation](https://developers.deepgram.com/docs/getting-started).
 
 ### Configuración YAML (`application.yaml`)
 
@@ -316,8 +323,15 @@ spring:
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}
+
 resend:
-  api-key: ${RESEND_API_KEY}
+  api:
+    key: ${RESEND_API_KEY}
+
+deepgram:
+  api:
+    key: ${DEEPGRAM_API_KEY}
+    url: https://api.deepgram.com/v1/listen?model=nova-2&language=es
 ```
 
 ---
@@ -408,7 +422,8 @@ Todas las entidades principales (excepto `FeedbackEntity` y `TokenPasswordResetE
 
 | Método | Endpoint | Descripción | Acceso |
 |---|---|---|---|
-| `POST` | `/feedbacks` | Crear feedback anónimo | 🌐 Público |
+| `POST` | `/feedbacks` | Crear feedback anónimo con texto | 🌐 Público |
+| `POST` | `/feedbacks/audio` | Crear feedback anónimo desde archivo de audio (transcripción automática con Deepgram) | 🌐 Público |
 | `GET` | `/feedbacks` | Listar todos los feedbacks | 🟡 READ_FEEDBACK |
 | `GET` | `/feedbacks/{recipientId}` | Feedbacks por destinatario | 🟡 READ_FEEDBACK |
 | `GET` | `/feedbacks/content/{id}` | Obtener feedback por ID | 🟡 READ_FEEDBACK |
@@ -449,6 +464,7 @@ Todas las entidades principales (excepto `FeedbackEntity` y `TokenPasswordResetE
 - **Maven 3.9+**
 - **PostgreSQL** (local o remoto)
 - **API Key de Resend** — Obtenida desde [resend.com](https://resend.com) con el dominio `automasilabo.space` configurado para envío de correos.
+- **API Key de Deepgram** — Obtenida desde [console.deepgram.com](https://console.deepgram.com) para transcripción de audios.
 
 ### Pasos
 
@@ -506,6 +522,7 @@ docker run -d \
   -e USER_DB=postgres \
   -e PASSWORD_DB=tu_password \
   -e RESEND_API_KEY=tu_api_key_de_resend \
+  -e DEEPGRAM_API_KEY=tu_api_key_de_deepgram \
   -e JWT_SECRET=tu_clave_secreta \
   -e JWT_EXPIRATION=3600000 \
   --name feedback-api \
@@ -562,6 +579,7 @@ El proceso de actualización en el servidor de producción en DigitalOcean sigue
      -e USER_DB=<supabase_user> \
      -e PASSWORD_DB=<supabase_password> \
      -e RESEND_API_KEY=<api_key> \
+     -e DEEPGRAM_API_KEY=<api_key_deepgram> \
      -e JWT_SECRET=<jwt_secret> \
      -e JWT_EXPIRATION=3600000 \
      -e SPRING_PROFILES_ACTIVE=dev \
@@ -594,6 +612,166 @@ El proceso de actualización en el servidor de producción en DigitalOcean sigue
 ```
 
 El correo enviado utiliza una **plantilla HTML profesional** (`templates/index_mail.html`) con el branding de Feedback App, incluyendo el token y los datos de recuperación.
+
+---
+
+## 🎤 Transcripción de Audio — Deepgram
+
+### Flujo de Procesamiento
+
+La aplicación integra **Deepgram API** para transcribir archivos de audio a texto automáticamente en la creación de feedbacks anónimos.
+
+```
+1. POST /feedbacks/audio (multipart/form-data)
+   ├── Se recibe un archivo de audio (audio, recipientId)
+   ├── Se valida que el archivo no sea null o esté vacío
+   ├── Se envía el audio a Deepgram API mediante RestClient
+   │  └── Endpoint: https://api.deepgram.com/v1/listen?model=nova-2&language=es
+   │  └── Headers: Authorization: Token <DEEPGRAM_API_KEY>, Content-Type: <tipo_de_audio>
+   ├── Deepgram procesa el audio y retorna JSON con la transcripción
+   ├── Se extrae el texto transcrito desde: results.channels[0].alternatives[0].transcript
+   ├── Se crea un FeedbackRequestDto con el contenido transcrito
+   ├── Se invoca createFeedback() con el contenido del texto
+   └── Se responde con FeedbackResponseDto (id, content, recipient, createdAt)
+```
+
+### Formatos de Audio Soportados
+
+Deepgram soporta múltiples formatos de audio. Los más comunes incluyen:
+- **WAV** — Formato sin compresión (recomendado para máxima calidad)
+- **MP3** — Formato comprimido con pérdida (tamaño reducido)
+- **FLAC** — Formato sin pérdida (compresión lossless)
+- **OGG** — Contenedor Ogg Vorbis
+- **M4A** — Contenedor MPEG-4 Audio
+
+El header `Content-Type` se obtiene directamente del archivo enviado (`audioFile.getContentType()`).
+
+### Configuración en application.yaml
+
+```yaml
+deepgram:
+  api:
+    key: ${DEEPGRAM_API_KEY}
+    url: https://api.deepgram.com/v1/listen?model=nova-2&language=es
+```
+
+**Parámetros:**
+- **model=nova-2** — Modelo de Deepgram más reciente y preciso
+- **language=es** — Idioma español para mejor reconocimiento
+
+### Servicio DeepgramService
+
+La clase `DeepgramService` encapsula la lógica de transcripción:
+
+```java
+@Service
+public class DeepgramService {
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
+
+    public DeepgramService(
+            @Value("${deepgram.api.url}") String apiUrl,
+            @Value("${deepgram.api.key}") String apiKey) {
+        // Configuración del RestClient con headers de autenticación
+        this.restClient = RestClient.builder()
+                .baseUrl(apiUrl)
+                .defaultHeader("Authorization", "Token " + apiKey)
+                .build();
+        this.objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule());
+    }
+
+    public String transcribeAudio(MultipartFile audioFile) {
+        // Validación del archivo
+        if (audioFile == null || audioFile.isEmpty()) {
+            throw new IllegalArgumentException("El archivo de audio no puede estar vacío");
+        }
+        
+        try {
+            // Petición POST a Deepgram
+            String response = restClient.post()
+                    .header("Content-Type", audioFile.getContentType())
+                    .body(audioFile.getBytes())
+                    .retrieve()
+                    .body(String.class);
+
+            // Parsing del JSON response
+            JsonNode rootNode = objectMapper.readTree(response);
+            JsonNode transcriptNode = rootNode
+                    .path("results")
+                    .path("channels").path(0)
+                    .path("alternatives").path(0)
+                    .path("transcript");
+
+            if (transcriptNode.isMissingNode()) {
+                throw new RuntimeException(
+                    "No se pudo extraer la transcripción de la respuesta de Deepgram"
+                );
+            }
+
+            return transcriptNode.asText();
+        } catch (IOException e) {
+            throw new RuntimeException("Error al cargar el buffer del audio", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al transcribir el audio", e);
+        }
+    }
+}
+```
+
+### Uso en FeedbackServiceImpl
+
+```java
+@Override
+public FeedbackResponseDto createFeedbackWithAudio(MultipartFile audio, Long recipientId) {
+    if (audio == null || audio.isEmpty()) {
+        throw new RuntimeException("Error: El audio no puede ser nulo o estar vacío");
+    }
+    
+    // Transcribir audio
+    String content = deepgramService.transcribeAudio(audio);
+    
+    // Crear feedback con el contenido transcrito
+    FeedbackRequestDto request = new FeedbackRequestDto(content, recipientId);
+    return createFeedback(request);
+}
+```
+
+### Ejemplo de Uso vía cURL
+
+```bash
+curl -X POST http://localhost:8082/feedbacks/audio \
+  -F "audio=@archivo_audio.wav" \
+  -F "recipientId=1"
+```
+
+### Ejemplo de Respuesta
+
+```json
+{
+  "id": 1,
+  "content": "Este es el contenido transcrito del archivo de audio",
+  "recipient": {
+    "id": 1,
+    "username": "john_doe",
+    "email": "john@example.com",
+    "role": "OWNER"
+  },
+  "createdAt": "2026-04-18T15:30:00Z"
+}
+```
+
+### Manejo de Errores
+
+El servicio maneja los siguientes errores:
+
+| Escenario | Error | HTTP Status |
+|---|---|---|
+| Archivo vacío o null | `IllegalArgumentException` | 400 |
+| Error de I/O al leer archivo | `RuntimeException` | 500 |
+| Respuesta JSON sin transcripción | `RuntimeException` | 500 |
+| Credenciales Deepgram inválidas | `RuntimeException` (Unauthorized) | 500 |
+| Conexión rechazada por Deepgram | `RuntimeException` | 500 |
 
 ---
 
@@ -637,5 +815,5 @@ Formato estándar de respuesta de error:
 
 ---
 
-> Desarrollado con ☕ Java 21 + Spring Boot 4.0.2 por @IzpoDev
+> Desarrollado con ☕ Java 21 + Spring Boot 4.0.2 por **@IzpoDev**
 

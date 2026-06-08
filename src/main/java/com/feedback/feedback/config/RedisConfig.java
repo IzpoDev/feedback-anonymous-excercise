@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -23,18 +23,18 @@ public class RedisConfig {
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        ObjectMapper mapper = new ObjectMapper();
+
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
-        // Activamos el tipado para que sepa qué objeto reconstruir
         objectMapper.activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,
                 ObjectMapper.DefaultTyping.NON_FINAL,
                 JsonTypeInfo.As.PROPERTY
         );
 
-        GenericJacksonJsonRedisSerializer serializer = new GenericJacksonJsonRedisSerializer(objectMapper);
+        // Usamos la clase con el "2", que es perfectamente compatible con tu entorno
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
