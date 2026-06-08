@@ -9,10 +9,9 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor //Vital para que jackson pueda crear el json
 @AllArgsConstructor
+@NoArgsConstructor //Vital para que jackson pueda crear el json
 public class UserCacheDto {
-
     private String username;
     private String password;
     private List<String> authorities;
